@@ -1,0 +1,55 @@
+# ─────────────────────────────────────────────────────────────
+# Cloudflare local-dev secrets. Copy to `.dev.vars` and fill in.
+# Wrangler / the Cloudflare Vite plugin loads this into the Worker env
+# (and process.env via nodejs_compat) for `vite dev` and `wrangler dev`.
+# In production set each with:  wrangler secret put <NAME>
+# ─────────────────────────────────────────────────────────────
+
+# ── Supabase (database, auth, storage) ──
+# VITE_* are exposed to the browser bundle AND read server-side via process.env.
+VITE_SUPABASE_URL=
+VITE_SUPABASE_PUBLISHABLE_KEY=
+# @btc/db (server-only, service role) reads SUPABASE_URL + SUPABASE_SECRET_KEY.
+SUPABASE_URL=
+SUPABASE_SECRET_KEY=
+# Public base URL of the app.
+VITE_APP_URL=http://localhost:3000
+
+# Cloudflare Web Analytics beacon token (optional; Dashboard → Web Analytics).
+VITE_CF_ANALYTICS_TOKEN=
+
+# ── Mux (video) ──
+MUX_TOKEN_ID=
+MUX_TOKEN_SECRET=
+MUX_WEBHOOK_SECRET=
+# Signed playback for gated/paid videos (optional).
+MUX_SIGNING_KEY_ID=
+MUX_SIGNING_PRIVATE_KEY=
+
+# ── Cron ──
+# Authorizes the HTTP /api/cron/publish trigger. The Cloudflare Cron Trigger
+# (every 5 min, see wrangler.jsonc) calls the Worker scheduled() handler directly
+# and does not need this secret.
+CRON_SECRET=
+
+# ── Initial admin (seed scripts; first signup also becomes admin) ──
+ADMIN_EMAIL=admin@example.com
+ADMIN_PASSWORD=change-me-please
+
+# ── Optional: AI comment moderation ──
+AI_MODERATION_ENABLED=
+OPENAI_API_KEY=
+
+# ── Optional: Polar monetization ──
+POLAR_ENABLED=
+POLAR_ACCESS_TOKEN=
+POLAR_WEBHOOK_SECRET=
+POLAR_SERVER=production
+
+# ── Optional sign-in providers (each auto-enables its method) ──
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+TWITTER_CLIENT_ID=
+TWITTER_CLIENT_SECRET=
+RESEND_API_KEY=
+EMAIL_FROM=

@@ -1,0 +1,29 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: "1.3.14"
+
+      - run: bun install --frozen-lockfile
+
+      - name: Lint + format (Biome)
+        run: bunx biome check .
+
+      # Build first: it generates src/routeTree.gen.ts (gitignored), which the
+      # typecheck imports.
+      - name: Build
+        run: bun run build
+
+      - name: Typecheck
+        run: bun run typecheck

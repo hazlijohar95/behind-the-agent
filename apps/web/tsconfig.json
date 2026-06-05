@@ -1,0 +1,15 @@
+{
+  "extends": "@btc/config/tsconfig/base.json",
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "baseUrl": ".",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "noEmit": true,
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  },
+  "include": ["src", "vite.config.ts", "worker-configuration.d.ts"],
+  "exclude": ["node_modules", "dist", ".wrangler", ".output", ".turbo"]
+}

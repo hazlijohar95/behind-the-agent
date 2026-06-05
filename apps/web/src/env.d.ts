@@ -1,0 +1,46 @@
+// Typed environment for autocomplete + safety.
+// VITE_* are inlined into the browser bundle by Vite (read via import.meta.env);
+// server-only secrets are read from process.env on the Cloudflare Worker.
+
+interface ImportMetaEnv {
+  readonly VITE_SUPABASE_URL: string;
+  readonly VITE_SUPABASE_PUBLISHABLE_KEY: string;
+  readonly VITE_APP_URL: string;
+  /** Cloudflare Web Analytics beacon token (optional). */
+  readonly VITE_CF_ANALYTICS_TOKEN?: string;
+}
+
+interface ImportMeta {
+  readonly env: ImportMetaEnv;
+}
+
+declare namespace NodeJS {
+  interface ProcessEnv {
+    SUPABASE_URL?: string;
+    SUPABASE_SECRET_KEY?: string;
+    SUPABASE_PUBLISHABLE_KEY?: string;
+    VITE_SUPABASE_URL?: string;
+    VITE_SUPABASE_PUBLISHABLE_KEY?: string;
+    VITE_APP_URL?: string;
+    MUX_TOKEN_ID?: string;
+    MUX_TOKEN_SECRET?: string;
+    MUX_WEBHOOK_SECRET?: string;
+    MUX_SIGNING_KEY_ID?: string;
+    MUX_SIGNING_PRIVATE_KEY?: string;
+    CRON_SECRET?: string;
+    ADMIN_EMAIL?: string;
+    ADMIN_PASSWORD?: string;
+    AI_MODERATION_ENABLED?: string;
+    OPENAI_API_KEY?: string;
+    POLAR_ENABLED?: string;
+    POLAR_ACCESS_TOKEN?: string;
+    POLAR_WEBHOOK_SECRET?: string;
+    POLAR_SERVER?: string;
+    RESEND_API_KEY?: string;
+    EMAIL_FROM?: string;
+    GOOGLE_CLIENT_ID?: string;
+    GOOGLE_CLIENT_SECRET?: string;
+    TWITTER_CLIENT_ID?: string;
+    TWITTER_CLIENT_SECRET?: string;
+  }
+}

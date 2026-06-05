@@ -1,0 +1,20 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "behindthecode",
+  "compatibility_date": "2025-09-02",
+  // `nodejs_compat` lets Node-style APIs (used by Supabase/Mux/Polar SDKs and
+  // the seed scripts) run on the Workers runtime.
+  "compatibility_flags": ["nodejs_compat"],
+  // Custom Worker entry that re-exports the TanStack Start SSR fetch handler
+  // (@tanstack/react-start/server-entry) AND adds a `scheduled` handler for the
+  // Cron Trigger below (scheduled publish).
+  "main": "./src/worker.ts",
+  "observability": { "enabled": true },
+  "triggers": {
+    // Replaces the Vercel cron (vercel.json) that hit /api/cron/publish.
+    "crons": ["*/5 * * * *"]
+  },
+  "vars": {
+    "VITE_APP_URL": "http://localhost:3000"
+  }
+}

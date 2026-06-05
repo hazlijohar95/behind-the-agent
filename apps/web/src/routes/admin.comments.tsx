@@ -1,0 +1,43 @@
+import { commentRepo } from "@btc/db";
+import { createFileRoute } from "@tanstack/react-router";
+import { createServerFn } from "@tanstack/react-start";
+import {
+  CommentModeration,
+  type ModComment,
+} from "@/components/admin/comment-moderation";
+
+const loadComments = createServerFn({ method: "GET" }).handler(async () => {
+  const flagged = await commentRepo.listFlaggedComments(0, 100);
+  const comments: ModComment[] = flagged.map((c) => ({
+    id: c.id,
+    body: c.body,
+    authorName: c.authorName,
+    createdAt: c.createdAt,
+    status: c.status,
+    aiReason: c.aiReason ?? null,
+  }));
+  return { comments };
+});
+
+export const Route = createFileRoute("/admin/comments")({
+  loader: () => loadComments(),
+  component: AdminCommentsPage,
+});
+
+function AdminCommentsPage() {
+  const { comments } = Route.useLoaderData();
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h1 className="font-serif text-2xl font-medium tracking-tight">
+          Comment moderation
+        </h1>
+        <p className="text-sm text-muted-foreground">
+          Comments flagged by AI moderation are held here for review.
+        </p>
+      </div>
+      <CommentModeration comments={comments} />
+    </div>
+  );
+}

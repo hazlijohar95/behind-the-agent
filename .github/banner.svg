@@ -1,0 +1,42 @@
+<svg width="1280" height="400" viewBox="0 0 1280 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Behind The Agents — your own video and course platform">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1280" y2="400" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0A0A0B"/>
+      <stop offset="1" stop-color="#18181B"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(1010 30) rotate(124) scale(560)">
+      <stop stop-color="#FFFFFF" stop-opacity="0.13"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="grid" width="44" height="44" patternUnits="userSpaceOnUse">
+      <path d="M44 0H0V44" fill="none" stroke="#FFFFFF" stroke-opacity="0.045" stroke-width="1"/>
+    </pattern>
+    <radialGradient id="metal" cx="0.4" cy="0.34" r="0.72">
+      <stop offset="0" stop-color="#FAFAFA"/>
+      <stop offset="0.45" stop-color="#9CA3AF"/>
+      <stop offset="0.72" stop-color="#E5E7EB"/>
+      <stop offset="1" stop-color="#3F3F46"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="1280" height="400" fill="url(#bg)"/>
+  <rect width="1280" height="400" fill="url(#grid)"/>
+  <rect width="1280" height="400" fill="url(#glow)"/>
+
+  <!-- wordmark -->
+  <g fill="#FAFAFA" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-weight="800" letter-spacing="-4">
+    <text x="96" y="190" font-size="106">BEHIND</text>
+    <text x="96" y="294" font-size="106">THE AGENTS</text>
+  </g>
+
+  <!-- tagline -->
+  <text x="100" y="344" fill="#A1A1AA" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="18" font-weight="500" letter-spacing="3.5">YOUR OWN VIDEO &amp; COURSE PLATFORM — FULLY YOURS</text>
+
+  <!-- metallic knob accent -->
+  <g transform="translate(1058 200)">
+    <circle r="98" fill="url(#metal)"/>
+    <circle r="98" fill="none" stroke="#000000" stroke-opacity="0.25" stroke-width="2"/>
+    <circle r="72" fill="none" stroke="#FFFFFF" stroke-opacity="0.14" stroke-width="1"/>
+    <rect x="-4" y="-88" width="8" height="30" rx="4" fill="#27272A"/>
+  </g>
+</svg>

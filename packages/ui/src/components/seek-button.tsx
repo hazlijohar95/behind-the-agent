@@ -1,6 +1,6 @@
 import { Clock } from "lucide-react";
 import * as React from "react";
-import { dispatchSeek } from "#components/mux-player";
+import { dispatchSeek } from "#components/stream-player";
 import { cn, formatDuration } from "#lib/utils";
 
 export function SeekButton({

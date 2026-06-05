@@ -15,10 +15,12 @@ import { categoryRepo, getDb, settingsRepo, videoRepo } from "@btc/db";
 const adminOnly = process.argv.includes("--admin-only");
 
 /**
- * Public Mux sample asset ("Big Buck Bunny"). Seeded videos point at this so the
- * player actually plays without needing a real Mux account in local/dev.
+ * A Cloudflare Stream sample video uid. Seeded videos point at it so the player
+ * has something to play in local/dev without uploading. Swap in a uid from your
+ * own Stream account if this public sample stops resolving. (Card thumbnails come
+ * from `customPosterUrl` below, so the grid looks right regardless.)
  */
-const MUX_DEMO_PLAYBACK_ID = "DS00Spx1CV902MCtPj5WknGlR102V5HFkDe";
+const STREAM_DEMO_UID = "6b9e68b07dfee8cc2d116e4c51d6a957";
 
 /**
  * Curated abstract nature imagery from Unsplash (rendered grayscale by the UI).
@@ -223,13 +225,12 @@ async function seedVideos() {
         description: VIDEO_BODY,
         categoryId: category.id,
         access: def.access,
+        streamUid: STREAM_DEMO_UID,
+        playbackPolicy: "public",
       });
       await videoRepo.markVideoReady(video.id, {
-        muxAssetId: `seed-${video.id}`,
-        playbackId: MUX_DEMO_PLAYBACK_ID,
-        playbackPolicy: "public",
         duration: def.minutes * 60,
-        aspectRatio: "16/9",
+        aspectRatio: "16:9",
       });
       await videoRepo.updateVideo(video.id, { customPosterUrl: poster(i) });
       // Synthetic engagement so the feed sort + stats look realistic.

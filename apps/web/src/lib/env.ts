@@ -8,8 +8,8 @@
  * locally and from the build environment in CI. There is exactly one place these
  * values live: `.env` / `.env.local` (or CI build vars) — never `.dev.vars`.
  *
- * SECRETS (SUPABASE_SECRET_KEY, MUX_*, POLAR_*, RESEND_*, CRON_SECRET, OAuth)
- * are deliberately NOT in here. Read them lazily via `process.env` at the call
+ * SECRETS (SUPABASE_SECRET_KEY, CLOUDFLARE_STREAM_API_TOKEN, STREAM_*, POLAR_*,
+ * RESEND_*, CRON_SECRET, OAuth) are deliberately NOT in here. Read them lazily via `process.env` at the call
  * site, and NEVER at module top-level: the Cloudflare Workers runtime only
  * populates the environment per-request, so a value read while a module is first
  * evaluated is empty. Locally those secrets come from `.dev.vars`; in production

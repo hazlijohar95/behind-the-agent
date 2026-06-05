@@ -8,6 +8,8 @@ interface ImportMetaEnv {
   readonly VITE_APP_URL: string;
   /** Cloudflare Web Analytics beacon token (optional). */
   readonly VITE_CF_ANALYTICS_TOKEN?: string;
+  /** Cloudflare Stream customer code (the `customer-<CODE>` subdomain). Public. */
+  readonly VITE_STREAM_CUSTOMER_CODE?: string;
 }
 
 interface ImportMeta {
@@ -22,11 +24,12 @@ declare namespace NodeJS {
     VITE_SUPABASE_URL?: string;
     VITE_SUPABASE_PUBLISHABLE_KEY?: string;
     VITE_APP_URL?: string;
-    MUX_TOKEN_ID?: string;
-    MUX_TOKEN_SECRET?: string;
-    MUX_WEBHOOK_SECRET?: string;
-    MUX_SIGNING_KEY_ID?: string;
-    MUX_SIGNING_PRIVATE_KEY?: string;
+    VITE_STREAM_CUSTOMER_CODE?: string;
+    CLOUDFLARE_ACCOUNT_ID?: string;
+    CLOUDFLARE_STREAM_API_TOKEN?: string;
+    STREAM_WEBHOOK_SECRET?: string;
+    STREAM_SIGNING_KEY_ID?: string;
+    STREAM_SIGNING_JWK?: string;
     CRON_SECRET?: string;
     ADMIN_EMAIL?: string;
     ADMIN_PASSWORD?: string;

@@ -1,4 +1,5 @@
 import type { AccessLevel, Video, Visibility } from "@btc/db";
+import { streamThumbnailUrl } from "@btc/ui";
 import { toast } from "@btc/ui/components/toaster";
 import { useRouter } from "@tanstack/react-router";
 import * as React from "react";
@@ -44,10 +45,11 @@ export function useVideoEditor(video: Video) {
 
   const posterPreview =
     video.customPosterUrl ??
-    (video.playbackId && video.playbackPolicy === "public"
-      ? `https://image.mux.com/${video.playbackId}/thumbnail.webp?width=640${
-          thumbnailTime ? `&time=${thumbnailTime}` : ""
-        }`
+    (video.streamUid && video.playbackPolicy === "public"
+      ? streamThumbnailUrl(video.streamUid, {
+          width: 640,
+          time: thumbnailTime ? Number(thumbnailTime) : undefined,
+        })
       : null);
 
   async function save(intent: SaveIntent) {

@@ -13,13 +13,17 @@
 SUPABASE_URL=
 SUPABASE_SECRET_KEY=
 
-# ── Mux (video) ──
-MUX_TOKEN_ID=
-MUX_TOKEN_SECRET=
-MUX_WEBHOOK_SECRET=
-# Signed playback for gated/paid videos (optional).
-MUX_SIGNING_KEY_ID=
-MUX_SIGNING_PRIVATE_KEY=
+# ── Cloudflare Stream (video) ──
+# Account id + an API token with the "Stream:Edit" permission. Used for direct
+# uploads, deletes, the webhook subscription, and signed playback.
+CLOUDFLARE_ACCOUNT_ID=
+CLOUDFLARE_STREAM_API_TOKEN=
+# Webhook secret + signing key for gated/paid playback. Generate all three with
+#   bun run --cwd apps/web stream-setup
+# and paste the printed values here.
+STREAM_WEBHOOK_SECRET=
+STREAM_SIGNING_KEY_ID=
+STREAM_SIGNING_JWK=
 
 # ── Cron ──
 # Authorizes the HTTP /api/cron/publish trigger. The Cloudflare Cron Trigger

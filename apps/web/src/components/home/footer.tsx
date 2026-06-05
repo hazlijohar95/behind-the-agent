@@ -26,9 +26,9 @@ export function LandingFooter({ siteName }: { siteName: string }) {
             <p className="text-[14px] leading-normal text-btc-muted">
               An open-source, single-publisher video platform for selling your
               own videos and courses. Self-hosted and fully yours — built on
-              TanStack Start, Mux, and Supabase, running on Cloudflare, with
-              subscriptions and one-time purchases via Polar. Deploy your own in
-              minutes.
+              TanStack Start and Supabase, running on Cloudflare (Workers +
+              Stream), with subscriptions and one-time purchases via Polar.
+              Deploy your own in minutes.
             </p>
           </div>
           <p className="text-[14px] leading-normal text-btc-muted">

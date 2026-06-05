@@ -11,7 +11,7 @@ import {
   type Visibility,
   videoRepo,
 } from "@btc/db";
-import { deleteAsset } from "@btc/mux";
+import { deleteVideo as deleteStreamVideo } from "@btc/stream";
 import { createServerFn } from "@tanstack/react-start";
 import { requireAdmin } from "@/lib/session";
 import { countAdmins, setUserBanned, setUserRole } from "@/lib/users";
@@ -68,7 +68,7 @@ export const deleteVideoAction = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     await requireAdmin();
     const video = await videoRepo.deleteVideo(data.id);
-    if (video?.muxAssetId) await deleteAsset(video.muxAssetId);
+    if (video?.streamUid) await deleteStreamVideo(video.streamUid);
     return { ok: true };
   });
 

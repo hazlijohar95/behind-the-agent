@@ -43,7 +43,7 @@ export type CreateVideoInput = {
   tags?: string[];
   access?: Video["access"];
   visibility?: Video["visibility"];
-  muxUploadId?: string | null;
+  streamUid?: string | null;
   playbackPolicy?: Video["playbackPolicy"];
 };
 
@@ -58,7 +58,7 @@ export async function createVideo(input: CreateVideoInput): Promise<Video> {
       description: input.description ?? "",
       processing_status: "uploading",
       publish_status: "draft",
-      mux_upload_id: input.muxUploadId ?? null,
+      stream_uid: input.streamUid ?? null,
       playback_policy: input.playbackPolicy ?? "public",
       category_id: input.categoryId ?? null,
       tags: input.tags ?? [],
@@ -132,16 +132,14 @@ export async function updateVideo(
   return data ? rowToVideo(data) : null;
 }
 
-/** Called by the Mux webhook when an asset is ready. */
+/**
+ * Called by the Stream webhook when a video finishes processing. The stream_uid
+ * and playback_policy were set at upload-create time, so this only records the
+ * post-encode facts (status, duration, aspect ratio, default poster time).
+ */
 export async function markVideoReady(
   id: string,
-  data: {
-    muxAssetId: string;
-    playbackId: string;
-    playbackPolicy: Video["playbackPolicy"];
-    duration: number | null;
-    aspectRatio: string | null;
-  },
+  data: { duration: number | null; aspectRatio: string | null },
 ): Promise<Video | null> {
   const existing = await getVideo(id);
   if (!existing) return null;
@@ -152,9 +150,6 @@ export async function markVideoReady(
     .from("videos")
     .update({
       processing_status: "ready",
-      mux_asset_id: data.muxAssetId,
-      playback_id: data.playbackId,
-      playback_policy: data.playbackPolicy,
       duration: data.duration,
       aspect_ratio: data.aspectRatio,
       thumbnail_time: thumbnailTime,
@@ -165,25 +160,11 @@ export async function markVideoReady(
   return row ? rowToVideo(row) : null;
 }
 
-export async function findVideoByUploadId(
-  uploadId: string,
-): Promise<Video | null> {
+export async function findVideoByStreamUid(uid: string): Promise<Video | null> {
   const { data } = await getDb()
     .from("videos")
     .select("*")
-    .eq("mux_upload_id", uploadId)
-    .limit(1)
-    .maybeSingle();
-  return data ? rowToVideo(data) : null;
-}
-
-export async function findVideoByAssetId(
-  assetId: string,
-): Promise<Video | null> {
-  const { data } = await getDb()
-    .from("videos")
-    .select("*")
-    .eq("mux_asset_id", assetId)
+    .eq("stream_uid", uid)
     .limit(1)
     .maybeSingle();
   return data ? rowToVideo(data) : null;

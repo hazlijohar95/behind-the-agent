@@ -1,7 +1,10 @@
 import { type AccessLevel, rateLimiters, videoRepo } from "@btc/db";
-import { createDirectUpload } from "@btc/mux";
+import { createDirectUpload } from "@btc/stream";
 import { createFileRoute } from "@tanstack/react-router";
 import { authedRoute, json } from "@/lib/api";
+
+/** Reject absurdly long inputs up front (4h ceiling). */
+const MAX_DURATION_SECONDS = 4 * 60 * 60;
 
 export const Route = createFileRoute("/api/admin/upload")({
   server: {
@@ -14,37 +17,48 @@ export const Route = createFileRoute("/api/admin/upload")({
 
         let title = "Untitled video";
         let access: AccessLevel = "free";
+        let uploadLength = 0;
+        let fileName: string | undefined;
         try {
           const data = (await request.json()) as {
             title?: string;
             access?: AccessLevel;
+            uploadLength?: number;
+            fileName?: string;
           };
           if (data.title?.trim()) title = data.title.trim();
           if (data.access) access = data.access;
+          if (typeof data.uploadLength === "number")
+            uploadLength = data.uploadLength;
+          if (data.fileName) fileName = data.fileName;
         } catch {
           // allow empty body — defaults apply
         }
 
-        const policy = access === "free" ? "public" : "signed";
-        const origin =
-          import.meta.env.VITE_APP_URL ?? new URL(request.url).origin;
+        if (!Number.isInteger(uploadLength) || uploadLength <= 0) {
+          return json({ error: "A valid file size is required" }, 400);
+        }
+
+        // Free videos play publicly; subscriber/purchase videos require signed URLs.
+        const requireSignedURLs = access !== "free";
 
         const upload = await createDirectUpload({
-          corsOrigin: origin,
-          policy,
-          generateCaptions: true,
+          uploadLength,
+          fileName,
+          requireSignedURLs,
+          maxDurationSeconds: MAX_DURATION_SECONDS,
         });
 
         const video = await videoRepo.createVideo({
           title,
           access,
-          playbackPolicy: policy,
-          muxUploadId: upload.id,
+          playbackPolicy: requireSignedURLs ? "signed" : "public",
+          streamUid: upload.uid,
         });
 
         return json({
-          uploadUrl: upload.url,
-          uploadId: upload.id,
+          uploadUrl: upload.uploadUrl,
+          uid: upload.uid,
           videoId: video.id,
         });
       }),

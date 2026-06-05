@@ -1,5 +1,5 @@
 {
-  "name": "@btc/mux",
+  "name": "@btc/stream",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -9,9 +9,6 @@
   "scripts": {
     "typecheck": "tsc --noEmit",
     "clean": "rm -rf .turbo node_modules"
-  },
-  "dependencies": {
-    "@mux/mux-node": "^14.1.1"
   },
   "devDependencies": {
     "@btc/config": "*",

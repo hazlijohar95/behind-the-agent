@@ -26,9 +26,8 @@ export const videoSchema = z.object({
   description: z.string().default(""),
   processingStatus: z.enum(processingStatuses).default("uploading"),
   publishStatus: z.enum(publishStatuses).default("draft"),
-  muxUploadId: z.string().nullable().default(null),
-  muxAssetId: z.string().nullable().default(null),
-  playbackId: z.string().nullable().default(null),
+  // Cloudflare Stream uid — one stable id for playback, thumbnails, signing.
+  streamUid: z.string().nullable().default(null),
   playbackPolicy: z.enum(playbackPolicies).default("public"),
   duration: z.number().nullable().default(null),
   aspectRatio: z.string().nullable().default(null),
@@ -161,7 +160,7 @@ export const settingsSchema = z.object({
   defaultAccess: z.enum(accessLevels).default("free"),
   currency: z.string().default("usd"),
   analyticsId: z.string().default(""),
-  livePlaybackId: z.string().default(""),
+  liveInputUid: z.string().default(""),
   liveTitle: z.string().default(""),
   updatedAt: z.number().default(() => Date.now()),
 });

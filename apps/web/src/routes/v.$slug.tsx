@@ -1,7 +1,7 @@
-import { hasSigningKey, signPlaybackToken } from "@btc/mux";
-import type { MediaItem } from "@btc/ui";
+import { signToken } from "@btc/stream";
+import { type MediaItem, streamThumbnailUrl } from "@btc/ui";
 import { Prose } from "@btc/ui/components/mdx";
-import { MuxPlayer } from "@btc/ui/components/mux-player";
+import { StreamPlayer } from "@btc/ui/components/stream-player";
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import type { ReactNode } from "react";
@@ -55,19 +55,17 @@ const loadWatch = createServerFn({ method: "GET" })
     const user = await getCurrentUser();
     const access = await resolveWatchAccess(video, user);
 
-    let tokens:
-      | { playback?: string; thumbnail?: string; storyboard?: string }
-      | undefined;
-    if (access.allowed && video.playbackId) {
-      const signed = video.playbackPolicy === "signed" && hasSigningKey();
-      if (signed) {
-        const [playback, thumbnail, storyboard] = await Promise.all([
-          signPlaybackToken(video.playbackId, "video"),
-          signPlaybackToken(video.playbackId, "thumbnail"),
-          signPlaybackToken(video.playbackId, "storyboard"),
-        ]);
-        tokens = { playback, thumbnail, storyboard };
-      }
+    // Gated videos play through a short-lived signed token; one token covers
+    // both playback and thumbnails. Public videos play by bare uid. signToken
+    // returns null when signing isn't configured, so the player falls back to
+    // the uid.
+    let token: string | undefined;
+    if (
+      access.allowed &&
+      video.streamUid &&
+      video.playbackPolicy === "signed"
+    ) {
+      token = (await signToken(video.streamUid)) ?? undefined;
     }
 
     const settings = await getSettingsCached();
@@ -80,10 +78,9 @@ const loadWatch = createServerFn({ method: "GET" })
       category,
       chapters,
       access,
-      tokens,
+      token,
       settings,
       descriptionHtml,
-      viewerId: user?.id,
     };
   });
 
@@ -94,12 +91,16 @@ export const Route = createFileRoute("/v/$slug")({
     const { video, settings } = loaderData;
     const description =
       video.description.slice(0, 200) || settings.defaultDescription;
-    // Real per-video OG image straight from Mux (Workers-native, no renderer).
-    // Only for public playback — signed/gated thumbnails need a token and we
-    // don't expose paid content to scrapers, so those omit the image.
+    // Real per-video OG image straight from Cloudflare Stream (Workers-native,
+    // no renderer). Only for public playback — signed/gated thumbnails need a
+    // token and we don't expose paid content to scrapers, so those omit it.
     const ogImage =
-      video.playbackId && video.playbackPolicy === "public"
-        ? `https://image.mux.com/${video.playbackId}/thumbnail.png?width=1200&height=630&fit_mode=smartcrop`
+      video.streamUid && video.playbackPolicy === "public"
+        ? streamThumbnailUrl(video.streamUid, {
+            width: 1200,
+            height: 630,
+            fit: "crop",
+          })
         : null;
     return {
       meta: [
@@ -157,10 +158,9 @@ function VideoPage() {
     category,
     chapters,
     access,
-    tokens,
+    token,
     settings,
     descriptionHtml,
-    viewerId,
   } = Route.useLoaderData();
 
   const item = toMediaItem({ ...video, views: 0, likes: 0 });
@@ -176,8 +176,7 @@ function VideoPage() {
               video={video}
               access={access}
               item={item}
-              tokens={tokens}
-              viewerId={viewerId}
+              token={token}
             />
           }
           title={video.title}
@@ -243,20 +242,18 @@ function PlayerArea({
   video,
   access,
   item,
-  tokens,
-  viewerId,
+  token,
 }: {
   video: ReturnType<typeof Route.useLoaderData>["video"];
   access: WatchAccess;
   item: MediaItem;
-  tokens?: { playback?: string; thumbnail?: string; storyboard?: string };
-  viewerId?: string;
+  token?: string;
 }) {
   if (!access.allowed) {
     return <Paywall item={item} access={access} />;
   }
 
-  if (!video.playbackId) {
+  if (!video.streamUid) {
     return (
       <div className="grid aspect-video w-full place-items-center rounded-lg bg-btc-surface text-btc-muted">
         This video is still processing.
@@ -267,18 +264,10 @@ function PlayerArea({
   return (
     <>
       <div className="aspect-video w-full overflow-hidden rounded-lg bg-black">
-        <MuxPlayer
+        <StreamPlayer
           className="size-full"
-          playbackId={video.playbackId}
-          title={video.title}
-          accentColor="#ffffff"
+          src={token ?? video.streamUid}
           poster={video.customPosterUrl ?? undefined}
-          tokens={tokens}
-          metadata={{
-            video_id: video.id,
-            video_title: video.title,
-            viewer_user_id: viewerId,
-          }}
         />
       </div>
       <ViewBeacon videoId={video.id} />

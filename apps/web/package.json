@@ -19,15 +19,14 @@
     "typecheck": "tsc --noEmit",
     "clean": "rm -rf .turbo dist .output .wrangler node_modules",
     "seed": "bun run scripts/seed.ts",
-    "seed:admin": "bun run scripts/seed.ts --admin-only"
+    "seed:admin": "bun run scripts/seed.ts --admin-only",
+    "stream-setup": "bun run scripts/stream-setup.ts"
   },
   "dependencies": {
     "@ai-sdk/openai": "^3.0.67",
     "@btc/db": "*",
-    "@btc/mux": "*",
+    "@btc/stream": "*",
     "@btc/ui": "*",
-    "@mux/mux-player-react": "^3.13.0",
-    "@mux/mux-uploader-react": "^1.5.0",
     "@polar-sh/sdk": "^0.47.1",
     "@supabase/ssr": "^0.10.3",
     "@supabase/supabase-js": "^2.107.0",
@@ -44,6 +43,7 @@
     "react-dom": "^19.2.0",
     "recharts": "^3.8.1",
     "sonner": "^2.0.7",
+    "tus-js-client": "^4.3.1",
     "zod": "^4.4.3"
   },
   "devDependencies": {

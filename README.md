@@ -11,7 +11,7 @@ No platform fees. No lock-in. Live in minutes — by yourself, or with an AI age
 ![TanStack Start](https://img.shields.io/badge/TanStack_Start-FF4154?style=flat-square&logo=react&logoColor=white)
 ![Cloudflare Workers](https://img.shields.io/badge/Cloudflare_Workers-F38020?style=flat-square&logo=cloudflare&logoColor=white)
 ![Supabase](https://img.shields.io/badge/Supabase-3ECF8E?style=flat-square&logo=supabase&logoColor=white)
-![Mux](https://img.shields.io/badge/Mux-FF2D9C?style=flat-square&logo=mux&logoColor=white)
+![Cloudflare Stream](https://img.shields.io/badge/Cloudflare_Stream-F38020?style=flat-square&logo=cloudflare&logoColor=white)
 ![License: MIT](https://img.shields.io/badge/License-MIT-blue?style=flat-square)
 
 </div>
@@ -43,7 +43,7 @@ You don't host it on someone else's marketplace that takes a cut and owns your c
 
 | | |
 | --- | --- |
-| 🎥 **Pro video** | Smooth adaptive streaming, thumbnails & captions (via Mux) |
+| 🎥 **Pro video** | Smooth adaptive streaming & thumbnails (via Cloudflare Stream) |
 | 🔐 **Members & login** | Email, Google, X, or magic-link sign-in |
 | 💳 **Get paid** | Subscriptions **and** one-time purchases (via Polar) |
 | 🔒 **Paywall** | Mark any video free or paid — gated content stays locked |
@@ -60,7 +60,7 @@ You don't host it on someone else's marketplace that takes a cut and owns your c
 
 ```mermaid
 flowchart LR
-  U["🎥 You upload"] --> M["⚙️ Mux encodes<br/>& streams it"]
+  U["🎥 You upload"] --> M["⚙️ Cloudflare Stream<br/>encodes & streams it"]
   M --> P["📺 Live on your<br/>channel"]
   P --> W["👤 Members watch"]
   W --> Pay["💳 Subscribe or buy<br/>→ 💰 you get paid"]
@@ -72,7 +72,7 @@ flowchart LR
 flowchart TD
   Visitor["👤 Visitor"] --> App["⚡ Your site<br/>Cloudflare Workers"]
   App --> Supabase["🗄️ Supabase<br/>database · login · files"]
-  App --> Mux["🎬 Mux<br/>video streaming"]
+  App --> Stream["🎬 Cloudflare Stream<br/>video"]
   App --> Polar["💳 Polar<br/>payments"]
 ```
 
@@ -80,24 +80,23 @@ flowchart TD
 
 ## 🚀 Get your own — no coding required
 
-Three clicks to set up your accounts, then one click to launch:
+Two services to set up, then one click to launch:
 
-[![Create a Supabase project](https://img.shields.io/badge/1._Supabase-Create_a_project-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white)](https://database.new) &nbsp; [![Get Mux API keys](https://img.shields.io/badge/2._Mux-Get_API_keys-FF2D9C?style=for-the-badge&logo=mux&logoColor=white)](https://dashboard.mux.com/signup) &nbsp; [![Deploy to Cloudflare](https://img.shields.io/badge/3._Cloudflare-Deploy_it-F38020?style=for-the-badge&logo=cloudflare&logoColor=white)](https://deploy.workers.cloudflare.com/?url=https://github.com/hazlijohar95/behind-the-agent)
+[![Create a Supabase project](https://img.shields.io/badge/1._Supabase-Create_a_project-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white)](https://database.new) &nbsp; [![Deploy to Cloudflare](https://img.shields.io/badge/2._Cloudflare-Deploy_it-F38020?style=for-the-badge&logo=cloudflare&logoColor=white)](https://deploy.workers.cloudflare.com/?url=https://github.com/hazlijohar95/behind-the-agent)
 
 1. **Supabase** (free) → click *Create a project*, copy your keys. _This is your database + logins._
-2. **Mux** (free to start) → sign up, copy your API keys. _This streams your videos._
-3. **Cloudflare** → click *Deploy it*, paste the keys when asked. _This puts your site online._
-4. **Open your site and sign up** — the first account becomes the **admin**. Head to `/admin` and upload your first video. 🎉
+2. **Cloudflare** → click *Deploy it*, paste the keys when asked. Your videos stream on **Cloudflare Stream** — same account, no separate signup. _This puts your site online and streams your videos._
+3. **Open your site and sign up** — the first account becomes the **admin**. Head to `/admin` and upload your first video. 🎉
 
 <div align="center">
-  <img src="./.github/cloudflare-deploy.png" alt="Cloudflare deploy step — paste your Supabase and Mux keys" width="88%" />
+  <img src="./.github/cloudflare-deploy.png" alt="Cloudflare deploy step — paste your Supabase and Cloudflare keys" width="88%" />
   <br/>
-  <sub><b>Step 3 looks like this</b> — Cloudflare asks for your keys. Paste the ones you copied from Supabase &amp; Mux, then hit <b>Deploy</b>. That's it. 🔑</sub>
+  <sub><b>Step 2 looks like this</b> — Cloudflare asks for your keys. Paste the ones you copied from Supabase, then hit <b>Deploy</b>. That's it. 🔑</sub>
 </div>
 
 > 💬 **Not technical? Hand this repo to an AI agent** (Claude, Cursor, etc.) and say *"set this up and deploy it for me."* The project is built so an agent can do every step above.
 
-<sub>The Cloudflare button truly deploys the app. The Supabase & Mux badges open their free sign-up pages — you copy a few keys, that's it.</sub>
+<sub>The Cloudflare button truly deploys the app. The Supabase badge opens its free sign-up page — you copy a few keys, that's it. Video runs on Cloudflare Stream, part of the same Cloudflare account.</sub>
 
 ---
 
@@ -122,7 +121,7 @@ Want a new feature, a redesign, or a tweak? Describe it to your agent — the co
 - **Framework:** TanStack Start (Vite 8, SSR, file-based routing, server functions), React 19
 - **Hosting:** Cloudflare Workers (edge SSR, Cron Triggers) — deploy with Wrangler
 - **Database / Auth / Storage:** Supabase (Postgres, RLS, full-text search)
-- **Video:** Mux (upload, playback, signed playback, captions, Mux Data)
+- **Video:** Cloudflare Stream (direct creator uploads via tus, adaptive playback, signed playback, thumbnails)
 - **Payments (optional):** Polar (subscriptions + one-time purchases)
 - **UI:** Tailwind v4 + shadcn-style components, light/dark; Tiptap authoring
 - **Caching:** TanStack Router loader cache + Cloudflare edge `Cache-Control`
@@ -137,7 +136,7 @@ apps/web/
   src/components/  # UI; src/lib/ — data + domain logic
   src/worker.ts   # Cloudflare entry: SSR fetch + scheduled() cron
 packages/
-  db/ mux/ ui/ config/   # data layer, Mux helpers, design system, tsconfig
+  db/ stream/ ui/ config/ # data layer, Cloudflare Stream helpers, design system, tsconfig
 supabase/migrations/      # schema, RLS, storage buckets, stats functions
 ```
 
@@ -158,17 +157,19 @@ bun run dev               # http://localhost:3000  (admin at /admin)
 Two files, one rule — **public config vs. secrets**:
 
 - **Public** (`VITE_*`) live in `apps/web/.env.local` (see [`.env.example`](./apps/web/.env.example)). Vite inlines them into the browser **and** SSR bundles via `import.meta.env`; in CI set them as build-time env vars. They are public by design — never put a secret in a `VITE_` var.
-- **Secrets** (`SUPABASE_SECRET_KEY`, `MUX_*`, `POLAR_*`, `CRON_SECRET`, OAuth) live in `apps/web/.dev.vars` (see [`.dev.vars.example`](./apps/web/.dev.vars.example)), loaded into the Worker's `process.env`; in prod use `wrangler secret put`. Read them lazily at request time — never at module top-level (the Workers runtime only populates the env per request).
+- **Secrets** (`SUPABASE_SECRET_KEY`, `CLOUDFLARE_STREAM_API_TOKEN`, `STREAM_*`, `POLAR_*`, `CRON_SECRET`, OAuth) live in `apps/web/.dev.vars` (see [`.dev.vars.example`](./apps/web/.dev.vars.example)), loaded into the Worker's `process.env`; in prod use `wrangler secret put`. Read them lazily at request time — never at module top-level (the Workers runtime only populates the env per request).
 
-Only core Supabase + Mux are required to boot.
+Run `bun run --cwd apps/web stream-setup` once to create the Stream signing key + register the webhook — it prints the `STREAM_*` values to paste in. Then set `VITE_STREAM_CUSTOMER_CODE` (your `customer-<CODE>` subdomain) in `.env.local`.
+
+Only core Supabase + Cloudflare Stream are required to boot.
 
 ### Deploy (three ways)
 
 1. **One-click button** (top of this README) — Cloudflare clones + sets up CI. On the setup page set **Root directory → `apps/web`**. (Monorepo builds can be finicky with the button; if it fails, use #2.)
-2. **GitHub Action** (recommended) — [`.github/workflows/deploy.yml`](./.github/workflows/deploy.yml) builds + deploys on push. Add repo secrets `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`, `VITE_APP_URL` and variable `ENABLE_DEPLOY=true`. Set runtime secrets (`SUPABASE_SECRET_KEY`, `MUX_*`, `CRON_SECRET`) in the Cloudflare dashboard.
+2. **GitHub Action** (recommended) — [`.github/workflows/deploy.yml`](./.github/workflows/deploy.yml) builds + deploys on push. Add repo secrets `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`, `VITE_APP_URL` and variable `ENABLE_DEPLOY=true`. Set runtime secrets (`SUPABASE_SECRET_KEY`, `CLOUDFLARE_STREAM_API_TOKEN`, `STREAM_*`, `CRON_SECRET`) in the Cloudflare dashboard.
 3. **From your machine** — Node 22+, then `cd apps/web && wrangler login && bun run deploy`.
 
-After deploying: point the **Mux webhook** at `https://<domain>/api/mux/webhook`, add `https://<domain>/auth/callback` to Supabase **Auth → URL Configuration**, then sign up (first account = admin).
+After deploying: run `bun run --cwd apps/web stream-setup` (registers the **Stream webhook** at `https://<domain>/api/stream/webhook` and prints the signing secrets), add `https://<domain>/auth/callback` to Supabase **Auth → URL Configuration**, then sign up (first account = admin).
 
 ### Scripts
 

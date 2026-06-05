@@ -19,7 +19,7 @@ export function toMediaItem(
     id: v.id,
     title: v.title,
     slug: v.slug,
-    playbackId: v.playbackId,
+    streamUid: v.streamUid,
     thumbnailTime: v.thumbnailTime,
     customPosterUrl: v.customPosterUrl,
     duration: v.duration,

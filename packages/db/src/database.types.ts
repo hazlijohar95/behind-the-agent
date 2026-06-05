@@ -388,10 +388,8 @@ export type Database = {
           duration: number | null;
           id: string;
           like_count: number;
-          mux_asset_id: string | null;
-          mux_upload_id: string | null;
-          playback_id: string | null;
           playback_policy: string;
+          stream_uid: string | null;
           price_amount: number | null;
           processing_status: string;
           publish_at: string | null;
@@ -419,10 +417,8 @@ export type Database = {
           duration?: number | null;
           id?: string;
           like_count?: number;
-          mux_asset_id?: string | null;
-          mux_upload_id?: string | null;
-          playback_id?: string | null;
           playback_policy?: string;
+          stream_uid?: string | null;
           price_amount?: number | null;
           processing_status?: string;
           publish_at?: string | null;
@@ -450,10 +446,8 @@ export type Database = {
           duration?: number | null;
           id?: string;
           like_count?: number;
-          mux_asset_id?: string | null;
-          mux_upload_id?: string | null;
-          playback_id?: string | null;
           playback_policy?: string;
+          stream_uid?: string | null;
           price_amount?: number | null;
           processing_status?: string;
           publish_at?: string | null;

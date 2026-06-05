@@ -80,9 +80,9 @@ create table public.videos (
                       check (processing_status in ('uploading','processing','ready','errored')),
   publish_status    text not null default 'draft'
                       check (publish_status in ('draft','scheduled','published')),
-  mux_upload_id     text,
-  mux_asset_id      text,
-  playback_id       text,
+  -- Cloudflare Stream video uid: one stable id, assigned at upload-create time,
+  -- used for playback, thumbnails, signing and deletion.
+  stream_uid        text,
   playback_policy   text not null default 'public' check (playback_policy in ('public','signed')),
   duration          double precision,
   aspect_ratio      text,
@@ -113,6 +113,7 @@ create index videos_like_count_idx   on public.videos (like_count desc);
 create index videos_created_at_idx   on public.videos (created_at desc);
 create index videos_category_idx     on public.videos (category_id);
 create index videos_publish_status_idx on public.videos (publish_status);
+create index videos_stream_uid_idx   on public.videos (stream_uid);
 create index videos_tags_idx         on public.videos using gin (tags);
 create index videos_search_idx       on public.videos using gin (search);
 
@@ -245,7 +246,7 @@ alter table public.daily_views enable row level security;
 -- no public policy: admin reads via service role only
 
 -- ===========================================================================
--- processed_webhooks (idempotency for Mux + Polar)
+-- processed_webhooks (idempotency for Stream + Polar)
 -- ===========================================================================
 create table public.processed_webhooks (
   id         text primary key,

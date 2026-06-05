@@ -10,19 +10,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@btc/ui/components/select";
+import { Spinner } from "@btc/ui/components/spinner";
 import { toast } from "@btc/ui/components/toaster";
-import { useRouter } from "@tanstack/react-router";
-import { Loader2, Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 import * as React from "react";
+import { useAction } from "@/hooks/use-action";
 import { createPlanAction, deletePlanAction } from "@/server/admin";
 
 export function PlanManager({ plans }: { plans: Plan[] }) {
-  const router = useRouter();
+  const { busyId, run } = useAction();
   const [name, setName] = React.useState("");
   const [productId, setProductId] = React.useState("");
   const [amount, setAmount] = React.useState("");
   const [interval, setInterval] = React.useState<PlanInterval>("month");
-  const [busy, setBusy] = React.useState<string | null>(null);
 
   async function create(e: React.FormEvent) {
     e.preventDefault();
@@ -30,40 +30,35 @@ export function PlanManager({ plans }: { plans: Plan[] }) {
       toast.error("Name and Polar product ID are required");
       return;
     }
-    setBusy("create");
-    try {
-      await createPlanAction({
-        data: {
-          name: name.trim(),
-          polarProductId: productId.trim(),
-          interval,
-          amount: Math.round(Number(amount) * 100) || 0,
-          currency: "usd",
+    await run(
+      "create",
+      () =>
+        createPlanAction({
+          data: {
+            name: name.trim(),
+            polarProductId: productId.trim(),
+            interval,
+            amount: Math.round(Number(amount) * 100) || 0,
+            currency: "usd",
+          },
+        }),
+      {
+        success: "Plan created",
+        error: "Could not create plan",
+        onSuccess: () => {
+          setName("");
+          setProductId("");
+          setAmount("");
         },
-      });
-      setName("");
-      setProductId("");
-      setAmount("");
-      toast.success("Plan created");
-      router.invalidate();
-    } catch {
-      toast.error("Could not create plan");
-    } finally {
-      setBusy(null);
-    }
+      },
+    );
   }
 
-  async function remove(id: string) {
+  function remove(id: string) {
     if (!confirm("Delete this plan?")) return;
-    setBusy(id);
-    try {
-      await deletePlanAction({ data: { id } });
-      router.invalidate();
-    } catch {
-      toast.error("Could not delete");
-    } finally {
-      setBusy(null);
-    }
+    run(id, () => deletePlanAction({ data: { id } }), {
+      error: "Could not delete",
+    });
   }
 
   return (
@@ -120,10 +115,10 @@ export function PlanManager({ plans }: { plans: Plan[] }) {
               <Button
                 type="submit"
                 variant="gradient"
-                disabled={busy === "create"}
+                disabled={busyId === "create"}
               >
-                {busy === "create" ? (
-                  <Loader2 className="size-4 animate-spin" />
+                {busyId === "create" ? (
+                  <Spinner />
                 ) : (
                   <Plus className="size-4" />
                 )}
@@ -152,14 +147,10 @@ export function PlanManager({ plans }: { plans: Plan[] }) {
               size="icon-sm"
               variant="ghost"
               className="text-destructive"
-              disabled={busy === p.id}
+              disabled={busyId === p.id}
               onClick={() => remove(p.id)}
             >
-              {busy === p.id ? (
-                <Loader2 className="size-4 animate-spin" />
-              ) : (
-                <Trash2 className="size-4" />
-              )}
+              {busyId === p.id ? <Spinner /> : <Trash2 className="size-4" />}
             </Button>
           </div>
         ))}

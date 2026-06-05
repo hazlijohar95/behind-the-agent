@@ -2,7 +2,12 @@ import { toast } from "@btc/ui/components/toaster";
 import { useRouter } from "@tanstack/react-router";
 import * as React from "react";
 
-type RunOptions = { success?: string; error?: string };
+type RunOptions = {
+  success?: string;
+  error?: string;
+  /** Runs after the action succeeds, before the router invalidate (e.g. reset a form). */
+  onSuccess?: () => void;
+};
 
 function isFailure(result: unknown): result is { ok: false; error?: string } {
   return (
@@ -33,6 +38,7 @@ export function useAction() {
         if (isFailure(result)) {
           throw new Error(result.error ?? opts.error ?? "Action failed");
         }
+        opts.onSuccess?.();
         if (opts.success) toast.success(opts.success);
         router.invalidate();
       } catch (err) {

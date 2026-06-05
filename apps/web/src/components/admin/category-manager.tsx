@@ -1,9 +1,9 @@
 import { Button } from "@btc/ui/components/button";
 import { Input } from "@btc/ui/components/input";
-import { toast } from "@btc/ui/components/toaster";
-import { useRouter } from "@tanstack/react-router";
-import { Loader2, Plus, Trash2 } from "lucide-react";
+import { Spinner } from "@btc/ui/components/spinner";
+import { Plus, Trash2 } from "lucide-react";
 import * as React from "react";
+import { useAction } from "@/hooks/use-action";
 import {
   createCategoryAction,
   deleteCategoryAction,
@@ -18,81 +18,64 @@ export type CategoryRow = {
 };
 
 export function CategoryManager({ categories }: { categories: CategoryRow[] }) {
-  const router = useRouter();
+  const { busyId, run } = useAction();
   const [name, setName] = React.useState("");
   const [description, setDescription] = React.useState("");
-  const [busy, setBusy] = React.useState<string | null>(null);
 
   async function create(e: React.FormEvent) {
     e.preventDefault();
     if (!name.trim()) return;
-    setBusy("create");
-    try {
-      await createCategoryAction({
-        data: {
-          name: name.trim(),
-          description: description.trim() || undefined,
+    await run(
+      "create",
+      () =>
+        createCategoryAction({
+          data: {
+            name: name.trim(),
+            description: description.trim() || undefined,
+          },
+        }),
+      {
+        success: "Category created",
+        error: "Could not create category",
+        onSuccess: () => {
+          setName("");
+          setDescription("");
         },
-      });
-      setName("");
-      setDescription("");
-      toast.success("Category created");
-      router.invalidate();
-    } catch {
-      toast.error("Could not create category");
-    } finally {
-      setBusy(null);
-    }
+      },
+    );
   }
 
-  async function rename(id: string, current: string) {
+  function rename(id: string, current: string) {
     const next = window.prompt("Rename category", current);
     if (!next || next === current) return;
-    setBusy(id);
-    try {
-      await updateCategoryAction({ data: { id, input: { name: next } } });
-      toast.success("Renamed");
-      router.invalidate();
-    } catch {
-      toast.error("Could not rename");
-    } finally {
-      setBusy(null);
-    }
+    run(
+      id,
+      () => updateCategoryAction({ data: { id, input: { name: next } } }),
+      { success: "Renamed", error: "Could not rename" },
+    );
   }
 
-  async function editDescription(id: string, current: string) {
+  function editDescription(id: string, current: string) {
     const next = window.prompt(
       "Category description (shown on the home page)",
       current,
     );
     if (next === null || next === current) return;
-    setBusy(id);
-    try {
-      await updateCategoryAction({
-        data: { id, input: { description: next } },
-      });
-      toast.success("Description updated");
-      router.invalidate();
-    } catch {
-      toast.error("Could not update description");
-    } finally {
-      setBusy(null);
-    }
+    run(
+      id,
+      () =>
+        updateCategoryAction({ data: { id, input: { description: next } } }),
+      { success: "Description updated", error: "Could not update description" },
+    );
   }
 
-  async function remove(id: string) {
+  function remove(id: string) {
     if (!confirm("Delete this category? Videos will become uncategorized."))
       return;
-    setBusy(id);
-    try {
-      await deleteCategoryAction({ data: { id } });
-      toast.success("Deleted");
-      router.invalidate();
-    } catch {
-      toast.error("Could not delete");
-    } finally {
-      setBusy(null);
-    }
+    run(id, () => deleteCategoryAction({ data: { id } }), {
+      success: "Deleted",
+      error: "Could not delete",
+    });
   }
 
   return (
@@ -110,12 +93,8 @@ export function CategoryManager({ categories }: { categories: CategoryRow[] }) {
           placeholder="Description (optional, shown on home)"
           className="min-w-[16rem] flex-1"
         />
-        <Button type="submit" variant="gradient" disabled={busy === "create"}>
-          {busy === "create" ? (
-            <Loader2 className="size-4 animate-spin" />
-          ) : (
-            <Plus className="size-4" />
-          )}
+        <Button type="submit" variant="gradient" disabled={busyId === "create"}>
+          {busyId === "create" ? <Spinner /> : <Plus className="size-4" />}
           Add
         </Button>
       </form>
@@ -149,14 +128,10 @@ export function CategoryManager({ categories }: { categories: CategoryRow[] }) {
               size="icon-sm"
               variant="ghost"
               className="text-destructive"
-              disabled={busy === c.id}
+              disabled={busyId === c.id}
               onClick={() => remove(c.id)}
             >
-              {busy === c.id ? (
-                <Loader2 className="size-4 animate-spin" />
-              ) : (
-                <Trash2 className="size-4" />
-              )}
+              {busyId === c.id ? <Spinner /> : <Trash2 className="size-4" />}
             </Button>
           </div>
         ))}

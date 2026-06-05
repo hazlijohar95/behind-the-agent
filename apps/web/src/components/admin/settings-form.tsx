@@ -15,35 +15,27 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@btc/ui/components/select";
+import { Spinner } from "@btc/ui/components/spinner";
 import { Switch } from "@btc/ui/components/switch";
-import { toast } from "@btc/ui/components/toaster";
-import { useRouter } from "@tanstack/react-router";
-import { Loader2 } from "lucide-react";
 import * as React from "react";
+import { useAction } from "@/hooks/use-action";
 import { updateSettingsAction } from "@/server/admin";
 
 export function SettingsForm({ settings }: { settings: Settings }) {
-  const router = useRouter();
+  const { busy, run } = useAction();
   const [s, setS] = React.useState(settings);
-  const [saving, setSaving] = React.useState(false);
 
   function set<K extends keyof Settings>(key: K, value: Settings[K]) {
     setS((prev) => ({ ...prev, [key]: value }));
   }
 
-  async function save() {
-    setSaving(true);
-    try {
-      const { updatedAt: _omit, ...patch } = s;
-      void _omit;
-      await updateSettingsAction({ data: patch });
-      toast.success("Settings saved");
-      router.invalidate();
-    } catch {
-      toast.error("Could not save settings");
-    } finally {
-      setSaving(false);
-    }
+  function save() {
+    const { updatedAt: _omit, ...patch } = s;
+    void _omit;
+    run("save", () => updateSettingsAction({ data: patch }), {
+      success: "Settings saved",
+      error: "Could not save settings",
+    });
   }
 
   return (
@@ -195,8 +187,8 @@ export function SettingsForm({ settings }: { settings: Settings }) {
       </Card>
 
       <div className="flex justify-end">
-        <Button variant="gradient" onClick={save} disabled={saving}>
-          {saving ? <Loader2 className="size-4 animate-spin" /> : null}
+        <Button variant="gradient" onClick={save} disabled={busy}>
+          {busy ? <Spinner /> : null}
           Save settings
         </Button>
       </div>

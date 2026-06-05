@@ -1,4 +1,4 @@
-import { type VideoSort } from "@btc/db";
+import { coerceVideoSort } from "@btc/db";
 import { VideoGrid } from "@btc/ui/components/video-grid";
 import { createFileRoute, notFound } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
@@ -7,13 +7,16 @@ import { cachePublic } from "@/lib/cache";
 import { getCategoryBySlugCached, getFeed } from "@/lib/catalog";
 
 const loadCategory = createServerFn({ method: "GET" })
-  .inputValidator((input: { slug: string; sort: string }) => input)
+  .inputValidator((input: { slug: string; sort: unknown }) => ({
+    slug: String(input.slug),
+    sort: coerceVideoSort(input.sort),
+  }))
   .handler(async ({ data }) => {
     const category = await getCategoryBySlugCached(data.slug);
     if (!category) throw notFound();
 
     const feed = await getFeed({
-      sort: data.sort as VideoSort,
+      sort: data.sort,
       categoryId: category.id,
       limit: 24,
     });

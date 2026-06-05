@@ -3,6 +3,7 @@ import { toast } from "@btc/ui/components/toaster";
 import { useRouter } from "@tanstack/react-router";
 import { Loader2, Lock } from "lucide-react";
 import * as React from "react";
+import { startCheckout } from "@/lib/billing-client";
 
 export function PaywallActions({
   videoId,
@@ -33,15 +34,9 @@ export function PaywallActions({
   async function checkout(mode: "subscription" | "purchase") {
     setPending(true);
     try {
-      const res = await fetch("/api/polar/checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ mode, videoId }),
-      });
-      if (!res.ok) throw new Error();
-      const data = (await res.json()) as { url?: string };
-      if (data.url) window.location.href = data.url;
-      else throw new Error();
+      window.location.href = await startCheckout(
+        mode === "purchase" ? { mode, videoId } : { mode },
+      );
     } catch {
       toast.error("Could not start checkout");
       setPending(false);

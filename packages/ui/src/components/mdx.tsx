@@ -1,4 +1,3 @@
-import Link from "next/link";
 import * as React from "react";
 import { parseTimestampHref, SeekButton } from "#components/seek-button";
 import { cn } from "#lib/utils";
@@ -28,12 +27,13 @@ function Anchor({ href = "", children, ...props }: React.ComponentProps<"a">) {
     );
   }
   return (
-    <Link
+    <a
       href={href}
       className="text-primary underline underline-offset-4 hover:text-primary/80"
+      {...props}
     >
       {children}
-    </Link>
+    </a>
   );
 }
 
@@ -56,7 +56,7 @@ export function Callout({
   );
 }
 
-/** Component map for next-mdx-remote. */
+/** Component map for rendered Markdown/MDX content. */
 export const mdxComponents = {
   a: Anchor,
   Callout,
@@ -100,7 +100,6 @@ export const mdxComponents = {
   ),
   hr: () => <hr className="my-6 border-border" />,
   img: (p: React.ComponentProps<"img">) => (
-    // eslint-disable-next-line @next/next/no-img-element
     <img
       className="my-4 rounded-xl border border-glass-border"
       alt={p.alt ?? ""}

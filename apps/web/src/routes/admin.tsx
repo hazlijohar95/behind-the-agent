@@ -19,7 +19,7 @@ const loadAdminLayout = createServerFn({ method: "GET" }).handler(async () => {
     throw redirect({ to: "/" });
   }
   return {
-    monetizationEnabled,
+    monetizationEnabled: monetizationEnabled(),
     user: {
       name: user.name,
       email: user.email,

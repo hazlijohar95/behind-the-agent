@@ -2,9 +2,18 @@ import { purchaseRepo, type Video } from "@btc/db";
 import { getBilling, isActive } from "./billing";
 import type { SessionUser } from "./session";
 
-export const monetizationEnabled =
-  process.env.POLAR_ENABLED === "true" &&
-  Boolean(process.env.POLAR_ACCESS_TOKEN);
+/**
+ * Whether paid monetization (Polar) is configured. Resolved lazily — reading
+ * `process.env` at module top-level returns empty values on the Workers runtime
+ * (env is only populated per-request), which would silently disable monetization
+ * in production. Always call this; never cache the result at module scope.
+ */
+export function monetizationEnabled(): boolean {
+  return (
+    process.env.POLAR_ENABLED === "true" &&
+    Boolean(process.env.POLAR_ACCESS_TOKEN)
+  );
+}
 
 export type WatchAccess = {
   allowed: boolean;
@@ -29,7 +38,7 @@ export async function resolveWatchAccess(
   video: Pick<Video, "id" | "access">,
   user: SessionUser | null,
 ): Promise<WatchAccess> {
-  if (!monetizationEnabled || video.access === "free") {
+  if (!monetizationEnabled() || video.access === "free") {
     return { allowed: true, gated: false, reason: "free" };
   }
 

@@ -1,7 +1,6 @@
 import {
   type AccessLevel,
   type CommentStatus,
-  cacheTags,
   categoryRepo,
   commentRepo,
   type PlanInterval,
@@ -14,7 +13,6 @@ import {
 } from "@btc/db";
 import { deleteAsset } from "@btc/mux";
 import { createServerFn } from "@tanstack/react-start";
-import { bust, bustCatalog } from "@/lib/api";
 import { requireAdmin } from "@/lib/session";
 import { countAdmins, setUserBanned, setUserRole } from "@/lib/users";
 
@@ -62,8 +60,6 @@ export const saveVideoAction = createServerFn({ method: "POST" })
       await videoRepo.scheduleVideo(input.id, input.publishAt);
     }
 
-    bustCatalog();
-    bust(cacheTags.video(input.id), cacheTags.videoSlug(video.slug));
     return { ok: true };
   });
 
@@ -73,8 +69,6 @@ export const deleteVideoAction = createServerFn({ method: "POST" })
     await requireAdmin();
     const video = await videoRepo.deleteVideo(data.id);
     if (video?.muxAssetId) await deleteAsset(video.muxAssetId);
-    bustCatalog();
-    if (video) bust(cacheTags.videoSlug(video.slug));
     return { ok: true };
   });
 
@@ -88,7 +82,6 @@ export const createCategoryAction = createServerFn({ method: "POST" })
       name: input.name,
       description: input.description,
     });
-    bust(cacheTags.categories);
     return { ok: true };
   });
 
@@ -100,7 +93,6 @@ export const updateCategoryAction = createServerFn({ method: "POST" })
   .handler(async ({ data: { id, input } }) => {
     await requireAdmin();
     await categoryRepo.updateCategory(id, input);
-    bust(cacheTags.categories, cacheTags.category(id));
     return { ok: true };
   });
 
@@ -109,7 +101,6 @@ export const deleteCategoryAction = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     await requireAdmin();
     await categoryRepo.deleteCategory(data.id);
-    bust(cacheTags.categories, cacheTags.videos);
     return { ok: true };
   });
 
@@ -138,7 +129,6 @@ export const updateSettingsAction = createServerFn({ method: "POST" })
   .handler(async ({ data: patch }) => {
     await requireAdmin();
     await settingsRepo.updateSettings(patch);
-    bust(cacheTags.settings);
     return { ok: true };
   });
 
@@ -185,7 +175,6 @@ export const createPlanAction = createServerFn({ method: "POST" })
   .handler(async ({ data: input }) => {
     await requireAdmin();
     await planRepo.createPlan(input);
-    bust(cacheTags.plans);
     return { ok: true };
   });
 
@@ -194,7 +183,6 @@ export const deletePlanAction = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     await requireAdmin();
     await planRepo.deletePlan(data.id);
-    bust(cacheTags.plans);
     return { ok: true };
   });
 

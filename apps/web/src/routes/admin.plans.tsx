@@ -6,7 +6,7 @@ import { monetizationEnabled } from "@/lib/entitlements";
 
 const loadPlans = createServerFn({ method: "GET" }).handler(async () => {
   const plans = await planRepo.listPlans();
-  return { plans, monetizationEnabled };
+  return { plans, monetizationEnabled: monetizationEnabled() };
 });
 
 export const Route = createFileRoute("/admin/plans")({

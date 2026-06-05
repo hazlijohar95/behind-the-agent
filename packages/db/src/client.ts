@@ -7,7 +7,7 @@ let client: Db | null = null;
 
 /** True when the server-side Supabase credentials are present. */
 export function isDbConfigured(): boolean {
-  const url = process.env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const url = process.env.SUPABASE_URL;
   const key =
     process.env.SUPABASE_SECRET_KEY ?? process.env.SUPABASE_SERVICE_ROLE_KEY;
   return Boolean(url && key);
@@ -22,7 +22,7 @@ export function isDbConfigured(): boolean {
 export function getDb(): Db {
   if (client) return client;
 
-  const url = process.env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const url = process.env.SUPABASE_URL;
   // Prefer the new secret key (`sb_secret_...`); fall back to the legacy
   // service_role JWT for older local stacks.
   const key =

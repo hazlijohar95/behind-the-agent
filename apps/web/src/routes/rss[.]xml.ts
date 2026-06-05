@@ -1,13 +1,7 @@
 import { videoRepo } from "@btc/db";
 import { createFileRoute } from "@tanstack/react-router";
 import { getSettingsCached } from "@/lib/catalog";
-
-function baseUrl(): string {
-  return (process.env.VITE_APP_URL ?? "http://localhost:3000").replace(
-    /\/$/,
-    "",
-  );
-}
+import { appUrl } from "@/lib/env";
 
 function esc(s: string): string {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -17,7 +11,7 @@ export const Route = createFileRoute("/rss.xml")({
   server: {
     handlers: {
       GET: async () => {
-        const base = baseUrl();
+        const base = appUrl();
         let siteName = "Behind The Agents";
         let description = "Behind The Agents";
         let items = "";

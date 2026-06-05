@@ -1,5 +1,4 @@
-import { cacheTags, videoRepo } from "@btc/db";
-import { bust, bustCatalog } from "@/lib/api";
+import { videoRepo } from "@btc/db";
 
 /**
  * Publishes scheduled videos whose time has arrived.
@@ -14,15 +13,7 @@ export async function runScheduledPublish(): Promise<{
 
   for (const id of dueIds) {
     const video = await videoRepo.publishVideo(id);
-    if (video) {
-      published.push(video.id);
-      bust(cacheTags.videoSlug(video.slug));
-      if (video.categoryId) bust(cacheTags.category(video.categoryId));
-    }
-  }
-
-  if (published.length > 0) {
-    bustCatalog();
+    if (video) published.push(video.id);
   }
 
   return { published: published.length, ids: published };

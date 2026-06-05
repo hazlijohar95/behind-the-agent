@@ -26,7 +26,7 @@ const loadAccount = createServerFn({ method: "GET" }).handler(async () => {
   let purchases: AccountData["purchases"] = [];
   let hasPlans = false;
 
-  if (monetizationEnabled) {
+  if (monetizationEnabled()) {
     const [b, rawPurchases, plans] = await Promise.all([
       getBilling(user.id),
       purchaseRepo.listPurchases(user.id),
@@ -63,7 +63,7 @@ const loadAccount = createServerFn({ method: "GET" }).handler(async () => {
 
   const data: AccountData = {
     user: { name: user.name, email: user.email, image: user.image ?? null },
-    monetizationEnabled,
+    monetizationEnabled: monetizationEnabled(),
     billing,
     hasPlans,
     purchases,

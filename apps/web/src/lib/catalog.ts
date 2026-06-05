@@ -163,8 +163,6 @@ export async function getCategorySlugsCached(): Promise<string[]> {
 /** Full-text search across published videos (Postgres FTS). */
 export async function searchVideos(query: string): Promise<MediaItem[]> {
   if (!isDbConfigured()) return [];
-  const ids = await searchRepo.searchVideoIds(query);
-  if (ids.length === 0) return [];
-  const videos = await videoRepo.listPublishedByIds(ids);
+  const videos = await searchRepo.searchVideos(query);
   return withCategoryNames(videos);
 }

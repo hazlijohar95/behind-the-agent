@@ -1,4 +1,4 @@
-import { getDb } from "@btc/db";
+import { profileRepo } from "@btc/db";
 import { redirect } from "@tanstack/react-router";
 import { createSupabaseServerClient } from "./supabase/server";
 
@@ -17,29 +17,18 @@ export type SessionUser = {
 };
 
 /**
- * Returns the verified JWT claims for the current request, or null.
- * `getClaims()` validates the token signature against the project's published
- * keys (locally for asymmetric keys), so it's safe to trust in server code.
+ * Returns the current request's user (verified JWT claims + authoritative
+ * profile row), or null. `getClaims()` validates the token signature against
+ * the project's published keys, so it's safe to trust in server code.
  */
-export async function getSession() {
-  const supabase = await createSupabaseServerClient();
-  const { data } = await supabase.auth.getClaims();
-  return data ? { claims: data.claims } : null;
-}
-
 export async function getCurrentUser(): Promise<SessionUser | null> {
-  const supabase = await createSupabaseServerClient();
+  const supabase = createSupabaseServerClient();
   const { data } = await supabase.auth.getClaims();
   const claims = data?.claims;
   if (!claims?.sub) return null;
 
   // Authoritative role/profile data lives in the profiles table (service role).
-  const db = getDb();
-  const { data: profile } = await db
-    .from("profiles")
-    .select("name, image, role, banned, email")
-    .eq("id", claims.sub)
-    .maybeSingle();
+  const profile = await profileRepo.getProfile(claims.sub);
 
   const metaRole =
     (claims.app_metadata as { role?: string } | undefined)?.role ?? null;
@@ -48,7 +37,7 @@ export async function getCurrentUser(): Promise<SessionUser | null> {
   return {
     id: claims.sub,
     name: profile?.name ?? "",
-    email: profile?.email ?? claimEmail ?? "",
+    email: profile?.email || claimEmail || "",
     image: profile?.image ?? null,
     role: profile?.role ?? metaRole ?? "user",
     banned: profile?.banned ?? false,

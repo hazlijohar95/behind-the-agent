@@ -169,6 +169,18 @@ export type Settings = z.infer<typeof settingsSchema>;
 
 export const defaultSettings: Settings = settingsSchema.parse({});
 
+/* ───────────────────────── Profile ───────────────────────── */
+
+export type Profile = {
+  id: string;
+  name: string;
+  email: string;
+  image: string | null;
+  role: string;
+  banned: boolean;
+  createdAt: number;
+};
+
 /* ───────────────────────── Pagination ───────────────────────── */
 
 export type Page<T> = {
@@ -178,4 +190,21 @@ export type Page<T> = {
   nextOffset: number;
 };
 
-export type VideoSort = "popular" | "recent" | "liked";
+export const videoSorts = ["popular", "recent", "liked"] as const;
+export type VideoSort = (typeof videoSorts)[number];
+
+const oneOf = <T extends string>(
+  allowed: readonly T[],
+  v: unknown,
+): T | undefined =>
+  typeof v === "string" && (allowed as readonly string[]).includes(v)
+    ? (v as T)
+    : undefined;
+
+/** Coerce untrusted input to a VideoSort, falling back to `popular`. */
+export const coerceVideoSort = (v: unknown): VideoSort =>
+  oneOf(videoSorts, v) ?? "popular";
+
+/** Coerce untrusted input to a PublishStatus, or `undefined` for "no filter". */
+export const coercePublishStatus = (v: unknown): PublishStatus | undefined =>
+  oneOf(publishStatuses, v);

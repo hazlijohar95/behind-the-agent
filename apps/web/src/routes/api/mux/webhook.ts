@@ -1,7 +1,7 @@
-import { cacheTags, videoRepo, webhookRepo } from "@btc/db";
+import { videoRepo, webhookRepo } from "@btc/db";
 import { unwrapWebhook } from "@btc/mux";
 import { createFileRoute } from "@tanstack/react-router";
-import { bust, bustCatalog, json } from "@/lib/api";
+import { json } from "@/lib/api";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -53,13 +53,6 @@ export const Route = createFileRoute("/api/mux/webhook")({
                     : null,
                 aspectRatio: data.aspect_ratio ?? null,
               });
-
-              bust(
-                cacheTags.video(video.id),
-                cacheTags.videoSlug(video.slug),
-                cacheTags.videos,
-              );
-              if (video.publishStatus === "published") bustCatalog();
               break;
             }
 

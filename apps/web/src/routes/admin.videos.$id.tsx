@@ -12,7 +12,7 @@ const loadVideo = createServerFn({ method: "GET" })
       categoryRepo.listCategories(),
     ]);
     if (!video) throw notFound();
-    return { video, categories, monetizationEnabled };
+    return { video, categories, monetizationEnabled: monetizationEnabled() };
   });
 
 export const Route = createFileRoute("/admin/videos/$id")({

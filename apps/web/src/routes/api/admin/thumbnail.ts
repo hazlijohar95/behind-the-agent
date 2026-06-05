@@ -1,6 +1,6 @@
-import { cacheTags, videoRepo } from "@btc/db";
+import { videoRepo } from "@btc/db";
 import { createFileRoute } from "@tanstack/react-router";
-import { bust, json, requireApiAdmin } from "@/lib/api";
+import { authedRoute, json } from "@/lib/api";
 import { uploadPublicFile } from "@/lib/storage";
 
 const MAX_BYTES = 8 * 1024 * 1024;
@@ -9,10 +9,7 @@ const ALLOWED = ["image/jpeg", "image/png", "image/webp", "image/avif"];
 export const Route = createFileRoute("/api/admin/thumbnail")({
   server: {
     handlers: {
-      POST: async ({ request }) => {
-        const auth = await requireApiAdmin();
-        if ("response" in auth) return auth.response;
-
+      POST: authedRoute("admin", async ({ request }) => {
         const form = await request.formData();
         const file = form.get("file");
         const videoId = form.get("videoId");
@@ -38,20 +35,11 @@ export const Route = createFileRoute("/api/admin/thumbnail")({
         }
 
         if (typeof videoId === "string" && videoId) {
-          const video = await videoRepo.updateVideo(videoId, {
-            customPosterUrl: url,
-          });
-          if (video) {
-            bust(
-              cacheTags.video(video.id),
-              cacheTags.videoSlug(video.slug),
-              cacheTags.videos,
-            );
-          }
+          await videoRepo.updateVideo(videoId, { customPosterUrl: url });
         }
 
         return json({ url });
-      },
+      }),
     },
   },
 });

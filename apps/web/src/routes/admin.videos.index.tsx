@@ -1,4 +1,4 @@
-import { type PublishStatus, videoRepo } from "@btc/db";
+import { coercePublishStatus, type PublishStatus, videoRepo } from "@btc/db";
 import { formatCompact, formatDuration, formatRelativeTime } from "@btc/ui";
 import { Badge } from "@btc/ui/components/badge";
 import { Button } from "@btc/ui/components/button";
@@ -31,11 +31,13 @@ const FILTERS = [
 ] as const;
 
 const loadAdminVideos = createServerFn({ method: "GET" })
-  .inputValidator((input: { status: string; q?: string }) => input)
+  .inputValidator((input: { status: unknown; q?: unknown }) => ({
+    status: coercePublishStatus(input.status),
+    q: typeof input.q === "string" ? input.q : undefined,
+  }))
   .handler(async ({ data }) => {
     const page = await videoRepo.listAdminVideos({
-      status:
-        data.status === "all" ? undefined : (data.status as PublishStatus),
+      status: data.status,
       query: data.q,
       limit: 100,
     });

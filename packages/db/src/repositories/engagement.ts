@@ -75,14 +75,21 @@ export async function toggleLike(
   const db = getDb();
   const already = await hasLiked(videoId, userId);
   if (already) {
-    await db
+    const { error } = await db
       .from("likes")
       .delete()
       .eq("video_id", videoId)
       .eq("user_id", userId);
+    if (error) throw new Error(error.message);
   } else {
-    await db.from("likes").insert({ video_id: videoId, user_id: userId });
+    const { error } = await db
+      .from("likes")
+      .insert({ video_id: videoId, user_id: userId });
+    // 23505 = unique violation: a concurrent toggle already inserted the like.
+    // The PK (user_id, video_id) keeps it idempotent, so that's not an error.
+    if (error && error.code !== "23505") throw new Error(error.message);
   }
+  // `videos.like_count` is maintained by a DB trigger on this insert/delete.
   const likes = await getLikes(videoId);
   return { likes, liked: !already };
 }

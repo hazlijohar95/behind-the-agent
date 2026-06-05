@@ -1,10 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { AuthForm } from "@/components/auth-form";
-import { authMethods } from "@/lib/auth-methods";
+import { getAuthMethods } from "@/lib/auth-methods";
 
-const loadAuthMethods = createServerFn({ method: "GET" }).handler(
-  async () => authMethods,
+const loadAuthMethods = createServerFn({ method: "GET" }).handler(async () =>
+  getAuthMethods(),
 );
 
 export const Route = createFileRoute("/_auth/signup")({

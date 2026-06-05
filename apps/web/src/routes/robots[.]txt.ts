@@ -1,17 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
-
-function baseUrl(): string {
-  return (process.env.VITE_APP_URL ?? "http://localhost:3000").replace(
-    /\/$/,
-    "",
-  );
-}
+import { appUrl } from "@/lib/env";
 
 export const Route = createFileRoute("/robots.txt")({
   server: {
     handlers: {
       GET: () => {
-        const base = baseUrl();
+        const base = appUrl();
         const body = [
           "User-agent: *",
           "Allow: /",

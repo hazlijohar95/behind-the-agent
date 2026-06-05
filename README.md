@@ -145,7 +145,8 @@ supabase/migrations/      # schema, RLS, storage buckets, stats functions
 
 ```bash
 bun install
-cp apps/web/.dev.vars.example apps/web/.dev.vars   # fill in your keys
+cp apps/web/.env.example apps/web/.env.local       # public config (VITE_*)
+cp apps/web/.dev.vars.example apps/web/.dev.vars    # server-only secrets
 supabase start            # local Postgres (needs Docker)
 bun run dev               # http://localhost:3000  (admin at /admin)
 ```
@@ -154,7 +155,12 @@ bun run dev               # http://localhost:3000  (admin at /admin)
 
 ### Environment variables
 
-Local secrets live in `apps/web/.dev.vars` (see [`.dev.vars.example`](./apps/web/.dev.vars.example)). Browser-exposed values are prefixed `VITE_`; server-only secrets (`SUPABASE_SECRET_KEY`, `MUX_*`, `POLAR_*`, `CRON_SECRET`) are read from `process.env`. Only core Supabase + Mux are required to boot.
+Two files, one rule — **public config vs. secrets**:
+
+- **Public** (`VITE_*`) live in `apps/web/.env.local` (see [`.env.example`](./apps/web/.env.example)). Vite inlines them into the browser **and** SSR bundles via `import.meta.env`; in CI set them as build-time env vars. They are public by design — never put a secret in a `VITE_` var.
+- **Secrets** (`SUPABASE_SECRET_KEY`, `MUX_*`, `POLAR_*`, `CRON_SECRET`, OAuth) live in `apps/web/.dev.vars` (see [`.dev.vars.example`](./apps/web/.dev.vars.example)), loaded into the Worker's `process.env`; in prod use `wrangler secret put`. Read them lazily at request time — never at module top-level (the Workers runtime only populates the env per request).
+
+Only core Supabase + Mux are required to boot.
 
 ### Deploy (three ways)
 

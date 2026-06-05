@@ -1,22 +1,17 @@
 # ─────────────────────────────────────────────────────────────
-# Cloudflare local-dev secrets. Copy to `.dev.vars` and fill in.
-# Wrangler / the Cloudflare Vite plugin loads this into the Worker env
-# (and process.env via nodejs_compat) for `vite dev` and `wrangler dev`.
-# In production set each with:  wrangler secret put <NAME>
+# SERVER-ONLY secrets. Copy to `.dev.vars` and fill in.
+# The Cloudflare Vite plugin loads this into the Worker's process.env (via
+# nodejs_compat) for `vite dev` / `wrangler dev`.
+#
+# PUBLIC browser config (VITE_*) does NOT go here — it lives in `.env` /
+# `.env.local` and is read through import.meta.env. See `.env.example`.
+#
+# In production set each of these with:  wrangler secret put <NAME>
 # ─────────────────────────────────────────────────────────────
 
-# ── Supabase (database, auth, storage) ──
-# VITE_* are exposed to the browser bundle AND read server-side via process.env.
-VITE_SUPABASE_URL=
-VITE_SUPABASE_PUBLISHABLE_KEY=
-# @btc/db (server-only, service role) reads SUPABASE_URL + SUPABASE_SECRET_KEY.
+# ── Supabase data layer (@btc/db service-role client; also used by seed) ──
 SUPABASE_URL=
 SUPABASE_SECRET_KEY=
-# Public base URL of the app.
-VITE_APP_URL=http://localhost:3000
-
-# Cloudflare Web Analytics beacon token (optional; Dashboard → Web Analytics).
-VITE_CF_ANALYTICS_TOKEN=
 
 # ── Mux (video) ──
 MUX_TOKEN_ID=

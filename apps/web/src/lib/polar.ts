@@ -13,9 +13,6 @@ export function getPolar(): Polar {
   return client;
 }
 
-export function appUrl(): string {
-  return (process.env.VITE_APP_URL ?? "http://localhost:3000").replace(
-    /\/$/,
-    "",
-  );
-}
+// Canonical app-URL helper lives in @/lib/env; re-exported here for the Polar
+// checkout call sites that build redirect URLs.
+export { appUrl } from "@/lib/env";

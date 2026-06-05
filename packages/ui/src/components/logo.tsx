@@ -15,7 +15,6 @@ export function Logo({
       className={cn("inline-flex items-center gap-2 font-semibold", className)}
     >
       {logoUrl ? (
-        // eslint-disable-next-line @next/next/no-img-element
         <img src={logoUrl} alt={label} className="h-7 w-auto" />
       ) : (
         <span className="grid size-7 place-items-center bg-foreground text-background">

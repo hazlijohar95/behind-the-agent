@@ -1,8 +1,4 @@
-"use client";
-
 import { Lock, Play } from "lucide-react";
-import Image from "next/image";
-import Link from "next/link";
 import * as React from "react";
 import { Badge } from "#components/badge";
 import { animatedFor, type MediaItem, posterFor } from "#lib/media";
@@ -28,21 +24,20 @@ export function VideoCard({
   const gated = item.access && item.access !== "free";
 
   return (
-    <Link
-      href={`/watch/${item.slug}`}
+    <a
+      href={`/v/${item.slug}`}
       className={cn("group block", className)}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
       <div className="relative aspect-video w-full overflow-hidden border border-border bg-muted">
         {poster ? (
-          <Image
+          <img
             src={poster}
             alt={item.title}
-            fill
-            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-            priority={priority}
-            className="object-cover transition-opacity duration-300 group-hover:opacity-90"
+            loading={priority ? "eager" : "lazy"}
+            decoding="async"
+            className="absolute inset-0 h-full w-full object-cover transition-opacity duration-300 group-hover:opacity-90"
           />
         ) : null}
 
@@ -85,7 +80,7 @@ export function VideoCard({
           {item.createdAt ? ` · ${formatRelativeTime(item.createdAt)}` : ""}
         </p>
       </div>
-    </Link>
+    </a>
   );
 }
 

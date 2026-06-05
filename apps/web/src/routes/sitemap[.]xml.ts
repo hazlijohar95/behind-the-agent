@@ -3,13 +3,7 @@ import {
   getCategorySlugsCached,
   getPublishedVideoSlugsCached,
 } from "@/lib/catalog";
-
-function baseUrl(): string {
-  return (process.env.VITE_APP_URL ?? "http://localhost:3000").replace(
-    /\/$/,
-    "",
-  );
-}
+import { appUrl } from "@/lib/env";
 
 type UrlEntry = {
   loc: string;
@@ -32,7 +26,7 @@ export const Route = createFileRoute("/sitemap.xml")({
   server: {
     handlers: {
       GET: async () => {
-        const base = baseUrl();
+        const base = appUrl();
         const staticRoutes: UrlEntry[] = [
           { loc: "/", changeFrequency: "daily", priority: 1 },
           { loc: "/about", changeFrequency: "monthly", priority: 0.3 },

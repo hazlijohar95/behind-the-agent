@@ -1,5 +1,3 @@
-"use client";
-
 import { Clock } from "lucide-react";
 import * as React from "react";
 import { dispatchSeek } from "#components/mux-player";

@@ -1,5 +1,6 @@
 import { useLocation, useRouter } from "@tanstack/react-router";
 import * as React from "react";
+import { CheckoutError, startCheckout } from "@/lib/billing-client";
 
 /**
  * Starts the real Polar subscription checkout. Behaviour:
@@ -30,28 +31,15 @@ export function BuyNow({
     onStart?.();
     setPending(true);
     try {
-      const res = await fetch("/api/polar/checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ mode: "subscription" }),
-      });
-
-      if (res.status === 401) {
+      window.location.href = await startCheckout({ mode: "subscription" });
+    } catch (err) {
+      if (err instanceof CheckoutError && err.status === 401) {
         router.navigate({
           to: `/login?redirect=${encodeURIComponent(pathname)}`,
         });
-        return;
-      }
-      if (!res.ok) {
+      } else {
         router.navigate({ to: fallbackHref });
-        return;
       }
-
-      const data = (await res.json()) as { url?: string };
-      if (data.url) window.location.href = data.url;
-      else router.navigate({ to: fallbackHref });
-    } catch {
-      router.navigate({ to: fallbackHref });
     } finally {
       setPending(false);
     }

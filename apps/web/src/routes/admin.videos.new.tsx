@@ -4,7 +4,7 @@ import { UploadVideo } from "@/components/admin/upload-video";
 import { monetizationEnabled } from "@/lib/entitlements";
 
 const loadNewVideo = createServerFn({ method: "GET" }).handler(async () => {
-  return { monetizationEnabled };
+  return { monetizationEnabled: monetizationEnabled() };
 });
 
 export const Route = createFileRoute("/admin/videos/new")({

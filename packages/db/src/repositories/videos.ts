@@ -1,27 +1,13 @@
 import { getDb } from "../client";
 import type { Database } from "../database.types";
-import { slugify } from "../id";
 import { rowToVideo } from "../mappers";
 import type { Page, Video, VideoSort, VideoWithStats } from "../types";
+import { uniqueSlug } from "./slug";
 
 type VideoUpdate = Database["public"]["Tables"]["videos"]["Update"];
 
-async function uniqueSlug(base: string, excludeId?: string): Promise<string> {
-  const db = getDb();
-  const root = slugify(base) || "video";
-  let slug = root;
-  let n = 1;
-  for (;;) {
-    const { data } = await db
-      .from("videos")
-      .select("id")
-      .eq("slug", slug)
-      .maybeSingle();
-    if (!data || data.id === excludeId) return slug;
-    n += 1;
-    slug = `${root}-${n}`;
-  }
-}
+const videoSlug = (base: string, excludeId?: string) =>
+  uniqueSlug("videos", base, "video", excludeId);
 
 export async function getVideo(id: string): Promise<Video | null> {
   const { data } = await getDb()
@@ -41,36 +27,13 @@ export async function getVideoBySlug(slug: string): Promise<Video | null> {
   return data ? rowToVideo(data) : null;
 }
 
-export async function getVideos(ids: string[]): Promise<Video[]> {
+export async function getVideos(ids: string[]): Promise<VideoWithStats[]> {
   if (ids.length === 0) return [];
   const { data } = await getDb().from("videos").select("*").in("id", ids);
   const byId = new Map((data ?? []).map((r) => [r.id, rowToVideo(r)]));
   return ids
     .map((id) => byId.get(id))
     .filter((v): v is VideoWithStats => Boolean(v));
-}
-
-export async function getEngagement(
-  videoId: string,
-): Promise<{ views: number; likes: number }> {
-  const { data } = await getDb()
-    .from("videos")
-    .select("view_count, like_count")
-    .eq("id", videoId)
-    .maybeSingle();
-  return {
-    views: Number(data?.view_count ?? 0),
-    likes: Number(data?.like_count ?? 0),
-  };
-}
-
-/** Rows already carry counts; kept for API compatibility. */
-export async function attachStats(videos: Video[]): Promise<VideoWithStats[]> {
-  return videos.map((v) => ({
-    ...v,
-    views: (v as VideoWithStats).views ?? 0,
-    likes: (v as VideoWithStats).likes ?? 0,
-  }));
 }
 
 export type CreateVideoInput = {
@@ -86,7 +49,7 @@ export type CreateVideoInput = {
 
 export async function createVideo(input: CreateVideoInput): Promise<Video> {
   const db = getDb();
-  const slug = await uniqueSlug(input.title || "video");
+  const slug = await videoSlug(input.title || "video");
   const { data, error } = await db
     .from("videos")
     .insert({
@@ -138,7 +101,7 @@ export async function updateVideo(
 
   let slug = existing.slug;
   if (patch.slug && patch.slug !== existing.slug) {
-    slug = await uniqueSlug(patch.slug, id);
+    slug = await videoSlug(patch.slug, id);
   }
 
   const update: VideoUpdate = { slug };
@@ -270,13 +233,22 @@ export async function scheduleVideo(
   return data ? rowToVideo(data) : null;
 }
 
-/** Returns ids of scheduled videos whose publishAt is due (<= now). */
-export async function getDueScheduled(now = Date.now()): Promise<string[]> {
+/**
+ * Returns ids of scheduled videos whose publishAt is due (<= now), oldest first
+ * and capped so a backlog can't make one cron tick unbounded — the next tick
+ * (every 5 min) drains the rest.
+ */
+export async function getDueScheduled(
+  now = Date.now(),
+  limit = 100,
+): Promise<string[]> {
   const { data } = await getDb()
     .from("videos")
     .select("id")
     .eq("publish_status", "scheduled")
-    .lte("publish_at", new Date(now).toISOString());
+    .lte("publish_at", new Date(now).toISOString())
+    .order("publish_at", { ascending: true })
+    .limit(limit);
   return (data ?? []).map((r) => r.id);
 }
 
@@ -326,21 +298,6 @@ export async function listPublished(
     hasMore: offset + limit < total,
     nextOffset: offset + limit,
   };
-}
-
-export async function listPublishedByIds(
-  ids: string[],
-): Promise<VideoWithStats[]> {
-  if (ids.length === 0) return [];
-  const { data } = await getDb()
-    .from("videos")
-    .select("*")
-    .in("id", ids)
-    .eq("publish_status", "published");
-  const byId = new Map((data ?? []).map((r) => [r.id, rowToVideo(r)]));
-  return ids
-    .map((id) => byId.get(id))
-    .filter((v): v is VideoWithStats => Boolean(v));
 }
 
 export type ListAdminOptions = {

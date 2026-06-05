@@ -13,6 +13,11 @@ import { toast } from "@btc/ui/components/toaster";
 import { Link, useRouter } from "@tanstack/react-router";
 import { CreditCard, ExternalLink, Loader2 } from "lucide-react";
 import * as React from "react";
+import {
+  type CheckoutInput,
+  openBillingPortal,
+  startCheckout,
+} from "@/lib/billing-client";
 import { updateDisplayNameAction } from "@/server/account";
 
 export type AccountData = {
@@ -62,18 +67,16 @@ export function AccountView({ data }: { data: AccountData }) {
     }
   }
 
-  async function billingAction(endpoint: "checkout" | "portal", body?: object) {
-    setBillingBusy(endpoint);
+  async function billingAction(
+    kind: "checkout" | "portal",
+    input?: CheckoutInput,
+  ) {
+    setBillingBusy(kind);
     try {
-      const res = await fetch(`/api/polar/${endpoint}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: body ? JSON.stringify(body) : undefined,
-      });
-      if (!res.ok) throw new Error();
-      const json = (await res.json()) as { url?: string };
-      if (json.url) window.location.href = json.url;
-      else throw new Error();
+      window.location.href =
+        kind === "portal"
+          ? await openBillingPortal()
+          : await startCheckout(input ?? { mode: "subscription" });
     } catch {
       toast.error("Something went wrong");
       setBillingBusy(null);

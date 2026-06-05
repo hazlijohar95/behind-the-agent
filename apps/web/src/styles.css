@@ -7,9 +7,9 @@
 @source "../../../packages/ui/src/**/*.{ts,tsx}";
 
 /*
- * Font CSS variables (replaces next/font/google). The font files themselves are
- * loaded via <link> tags in src/routes/__root.tsx. The variable names match
- * what the @btc/ui theme and existing components expect.
+ * Font CSS variables. The font files themselves are loaded via <link> tags in
+ * src/routes/__root.tsx. The variable names match what the @btc/ui theme and
+ * existing components expect.
  */
 :root {
   --font-geist-sans:

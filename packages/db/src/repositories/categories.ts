@@ -1,10 +1,13 @@
 import { getDb } from "../client";
 import type { Database } from "../database.types";
-import { slugify } from "../id";
 import { rowToCategory } from "../mappers";
 import type { Category } from "../types";
+import { uniqueSlug } from "./slug";
 
 type CategoryUpdate = Database["public"]["Tables"]["categories"]["Update"];
+
+const categorySlug = (base: string, excludeId?: string) =>
+  uniqueSlug("categories", base, "category", excludeId);
 
 export async function getCategory(id: string): Promise<Category | null> {
   const { data } = await getDb()
@@ -34,31 +37,11 @@ export async function listCategories(): Promise<Category[]> {
   return (data ?? []).map(rowToCategory);
 }
 
-async function uniqueCategorySlug(
-  base: string,
-  excludeId?: string,
-): Promise<string> {
-  const db = getDb();
-  const root = slugify(base) || "category";
-  let slug = root;
-  let n = 1;
-  for (;;) {
-    const { data } = await db
-      .from("categories")
-      .select("id")
-      .eq("slug", slug)
-      .maybeSingle();
-    if (!data || data.id === excludeId) return slug;
-    n += 1;
-    slug = `${root}-${n}`;
-  }
-}
-
 export async function createCategory(input: {
   name: string;
   description?: string;
 }): Promise<Category> {
-  const slug = await uniqueCategorySlug(input.name);
+  const slug = await categorySlug(input.name);
   const { data, error } = await getDb()
     .from("categories")
     .insert({ name: input.name, slug, description: input.description ?? "" })
@@ -77,7 +60,7 @@ export async function updateCategory(
   if (!existing) return null;
   let slug = existing.slug;
   if (patch.name && patch.name !== existing.name) {
-    slug = await uniqueCategorySlug(patch.name, id);
+    slug = await categorySlug(patch.name, id);
   }
   const update: CategoryUpdate = { slug };
   if (patch.name !== undefined) update.name = patch.name;

@@ -1,6 +1,7 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@btc/ui/components/avatar";
 import { Badge } from "@btc/ui/components/badge";
 import { Button } from "@btc/ui/components/button";
+import { Spinner } from "@btc/ui/components/spinner";
 import {
   Table,
   TableBody,
@@ -9,10 +10,8 @@ import {
   TableHeader,
   TableRow,
 } from "@btc/ui/components/table";
-import { toast } from "@btc/ui/components/toaster";
-import { useRouter } from "@tanstack/react-router";
-import { Ban, Loader2, Shield, ShieldOff, UserCheck } from "lucide-react";
-import * as React from "react";
+import { Ban, Shield, ShieldOff, UserCheck } from "lucide-react";
+import { useAction } from "@/hooks/use-action";
 import { banUserAction, setUserRoleAction } from "@/server/admin";
 
 export type UserRow = {
@@ -31,24 +30,7 @@ export function UserManagement({
   users: UserRow[];
   currentUserId: string;
 }) {
-  const router = useRouter();
-  const [busy, setBusy] = React.useState<string | null>(null);
-
-  async function act(
-    id: string,
-    fn: () => Promise<{ ok: boolean; error?: string }>,
-  ) {
-    setBusy(id);
-    try {
-      const res = await fn();
-      if (!res.ok) throw new Error(res.error);
-      router.invalidate();
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Action failed");
-    } finally {
-      setBusy(null);
-    }
-  }
+  const { busyId, run } = useAction();
 
   return (
     <div className="glass overflow-hidden rounded-xl">
@@ -114,9 +96,9 @@ export function UserManagement({
                     <Button
                       size="sm"
                       variant="outline"
-                      disabled={busy === u.id || isSelf}
+                      disabled={busyId === u.id || isSelf}
                       onClick={() =>
-                        act(u.id, () =>
+                        run(u.id, () =>
                           setUserRoleAction({
                             data: {
                               userId: u.id,
@@ -126,8 +108,8 @@ export function UserManagement({
                         )
                       }
                     >
-                      {busy === u.id ? (
-                        <Loader2 className="size-4 animate-spin" />
+                      {busyId === u.id ? (
+                        <Spinner />
                       ) : isAdmin ? (
                         <ShieldOff className="size-4" />
                       ) : (
@@ -139,9 +121,9 @@ export function UserManagement({
                       size="sm"
                       variant="ghost"
                       className={u.banned ? "" : "text-destructive"}
-                      disabled={busy === u.id || isSelf}
+                      disabled={busyId === u.id || isSelf}
                       onClick={() =>
-                        act(u.id, () =>
+                        run(u.id, () =>
                           banUserAction({
                             data: { userId: u.id, ban: !u.banned },
                           }),

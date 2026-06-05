@@ -1,4 +1,3 @@
-export { cacheTags } from "./cache-tags";
 export { type Db, getDb, isDbConfigured } from "./client";
 export type { Database } from "./database.types";
 export { newId, slugify, tokenize } from "./id";
@@ -12,6 +11,7 @@ export * as categoryRepo from "./repositories/categories";
 export * as commentRepo from "./repositories/comments";
 export * as engagementRepo from "./repositories/engagement";
 export * as planRepo from "./repositories/plans";
+export * as profileRepo from "./repositories/profiles";
 export * as purchaseRepo from "./repositories/purchases";
 export * as searchRepo from "./repositories/search";
 export * as settingsRepo from "./repositories/settings";

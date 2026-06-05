@@ -1,10 +1,9 @@
 import { formatRelativeTime } from "@btc/ui";
 import { Badge } from "@btc/ui/components/badge";
 import { Button } from "@btc/ui/components/button";
-import { toast } from "@btc/ui/components/toaster";
-import { useRouter } from "@tanstack/react-router";
-import { Check, EyeOff, Loader2, Trash2 } from "lucide-react";
-import * as React from "react";
+import { Spinner } from "@btc/ui/components/spinner";
+import { Check, EyeOff, Trash2 } from "lucide-react";
+import { useAction } from "@/hooks/use-action";
 import { deleteCommentAction, setCommentStatusAction } from "@/server/admin";
 
 export type ModComment = {
@@ -17,21 +16,7 @@ export type ModComment = {
 };
 
 export function CommentModeration({ comments }: { comments: ModComment[] }) {
-  const router = useRouter();
-  const [busy, setBusy] = React.useState<string | null>(null);
-
-  async function act(id: string, fn: () => Promise<unknown>, msg: string) {
-    setBusy(id);
-    try {
-      await fn();
-      toast.success(msg);
-      router.invalidate();
-    } catch {
-      toast.error("Action failed");
-    } finally {
-      setBusy(null);
-    }
-  }
+  const { busyId, run } = useAction();
 
   if (comments.length === 0) {
     return (
@@ -68,15 +53,15 @@ export function CommentModeration({ comments }: { comments: ModComment[] }) {
             <Button
               size="sm"
               variant="secondary"
-              disabled={busy === c.id}
+              disabled={busyId === c.id}
               onClick={() =>
-                act(
+                run(
                   c.id,
                   () =>
                     setCommentStatusAction({
                       data: { id: c.id, status: "published" },
                     }),
-                  "Approved",
+                  { success: "Approved" },
                 )
               }
             >
@@ -85,15 +70,15 @@ export function CommentModeration({ comments }: { comments: ModComment[] }) {
             <Button
               size="sm"
               variant="outline"
-              disabled={busy === c.id}
+              disabled={busyId === c.id}
               onClick={() =>
-                act(
+                run(
                   c.id,
                   () =>
                     setCommentStatusAction({
                       data: { id: c.id, status: "removed" },
                     }),
-                  "Removed",
+                  { success: "Removed" },
                 )
               }
             >
@@ -103,20 +88,14 @@ export function CommentModeration({ comments }: { comments: ModComment[] }) {
               size="icon-sm"
               variant="ghost"
               className="text-destructive"
-              disabled={busy === c.id}
+              disabled={busyId === c.id}
               onClick={() =>
-                act(
-                  c.id,
-                  () => deleteCommentAction({ data: { id: c.id } }),
-                  "Deleted",
-                )
+                run(c.id, () => deleteCommentAction({ data: { id: c.id } }), {
+                  success: "Deleted",
+                })
               }
             >
-              {busy === c.id ? (
-                <Loader2 className="size-4 animate-spin" />
-              ) : (
-                <Trash2 className="size-4" />
-              )}
+              {busyId === c.id ? <Spinner /> : <Trash2 className="size-4" />}
             </Button>
           </div>
         </div>

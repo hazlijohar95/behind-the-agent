@@ -1,18 +1,15 @@
 import { planRepo, videoRepo } from "@btc/db";
 import { createFileRoute } from "@tanstack/react-router";
-import { json, requireApiUser } from "@/lib/api";
+import { authedRoute, json } from "@/lib/api";
 import { monetizationEnabled } from "@/lib/entitlements";
 import { appUrl, getPolar } from "@/lib/polar";
 
 export const Route = createFileRoute("/api/polar/checkout")({
   server: {
     handlers: {
-      POST: async ({ request }) => {
-        if (!monetizationEnabled)
+      POST: authedRoute("user", async ({ request, user }) => {
+        if (!monetizationEnabled())
           return json({ error: "Monetization is disabled" }, 501);
-        const auth = await requireApiUser();
-        if ("response" in auth) return auth.response;
-        const user = auth.user;
 
         let payload: { mode?: string; planId?: string; videoId?: string };
         try {
@@ -76,7 +73,7 @@ export const Route = createFileRoute("/api/polar/checkout")({
           console.error("[polar checkout]", err);
           return json({ error: "Could not start checkout" }, 500);
         }
-      },
+      }),
     },
   },
 });

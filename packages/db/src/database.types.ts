@@ -7,30 +7,10 @@ export type Json =
   | Json[];
 
 export type Database = {
-  graphql_public: {
-    Tables: {
-      [_ in never]: never;
-    };
-    Views: {
-      [_ in never]: never;
-    };
-    Functions: {
-      graphql: {
-        Args: {
-          operationName?: string;
-          query?: string;
-          variables?: Json;
-          extensions?: Json;
-        };
-        Returns: Json;
-      };
-    };
-    Enums: {
-      [_ in never]: never;
-    };
-    CompositeTypes: {
-      [_ in never]: never;
-    };
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: "14.5";
   };
   public: {
     Tables: {
@@ -38,24 +18,24 @@ export type Database = {
         Row: {
           current_period_end: number | null;
           plan_id: string | null;
-          status: string | null;
           polar_customer_id: string | null;
+          status: string | null;
           updated_at: string;
           user_id: string;
         };
         Insert: {
           current_period_end?: number | null;
           plan_id?: string | null;
-          status?: string | null;
           polar_customer_id?: string | null;
+          status?: string | null;
           updated_at?: string;
           user_id: string;
         };
         Update: {
           current_period_end?: number | null;
           plan_id?: string | null;
-          status?: string | null;
           polar_customer_id?: string | null;
+          status?: string | null;
           updated_at?: string;
           user_id?: string;
         };
@@ -309,7 +289,7 @@ export type Database = {
           publish_status: string;
           published_at: string | null;
           required_plan_ids: string[];
-          search: unknown | null;
+          search: unknown;
           slug: string;
           tags: string[];
           title: string;
@@ -331,7 +311,7 @@ export type Database = {
           publish_status?: string;
           published_at?: string | null;
           required_plan_ids?: string[];
-          search?: unknown | null;
+          search?: unknown;
           slug: string;
           tags?: string[];
           title: string;
@@ -353,7 +333,7 @@ export type Database = {
           publish_status?: string;
           published_at?: string | null;
           required_plan_ids?: string[];
-          search?: unknown | null;
+          search?: unknown;
           slug?: string;
           tags?: string[];
           title?: string;
@@ -768,16 +748,16 @@ export type Database = {
           id: string;
           like_count: number;
           playback_policy: string;
-          stream_uid: string | null;
+          polar_product_id: string | null;
           price_amount: number | null;
           processing_status: string;
           publish_at: string | null;
           publish_status: string;
           published_at: string | null;
           required_plan_ids: string[];
-          search: unknown | null;
+          search: unknown;
           slug: string;
-          polar_product_id: string | null;
+          stream_uid: string | null;
           tags: string[];
           thumbnail_time: number | null;
           title: string;
@@ -798,16 +778,16 @@ export type Database = {
           id?: string;
           like_count?: number;
           playback_policy?: string;
-          stream_uid?: string | null;
+          polar_product_id?: string | null;
           price_amount?: number | null;
           processing_status?: string;
           publish_at?: string | null;
           publish_status?: string;
           published_at?: string | null;
           required_plan_ids?: string[];
-          search?: unknown | null;
+          search?: unknown;
           slug: string;
-          polar_product_id?: string | null;
+          stream_uid?: string | null;
           tags?: string[];
           thumbnail_time?: number | null;
           title: string;
@@ -828,16 +808,16 @@ export type Database = {
           id?: string;
           like_count?: number;
           playback_policy?: string;
-          stream_uid?: string | null;
+          polar_product_id?: string | null;
           price_amount?: number | null;
           processing_status?: string;
           publish_at?: string | null;
           publish_status?: string;
           published_at?: string | null;
           required_plan_ids?: string[];
-          search?: unknown | null;
+          search?: unknown;
           slug?: string;
-          polar_product_id?: string | null;
+          stream_uid?: string | null;
           tags?: string[];
           thumbnail_time?: number | null;
           title?: string;
@@ -865,46 +845,42 @@ export type Database = {
         Args: { p_key: string; p_max: number; p_window_seconds: number };
         Returns: boolean;
       };
+      current_profile_banned: { Args: never; Returns: boolean };
+      current_profile_role: { Args: never; Returns: string };
       dashboard_stats: {
-        Args: Record<PropertyKey, never>;
+        Args: never;
         Returns: {
+          flagged_comments: number;
+          total_comments: number;
+          total_likes: number;
           total_videos: number;
           total_views: number;
-          total_likes: number;
-          total_comments: number;
-          flagged_comments: number;
         }[];
       };
-      increment_view: {
-        Args: { p_video_id: string };
-        Returns: number;
-      };
+      increment_view: { Args: { p_video_id: string }; Returns: number };
+      is_admin: { Args: never; Returns: boolean };
       issue_certificate: {
-        Args: { p_user_id: string; p_course_id: string };
+        Args: { p_course_id: string; p_user_id: string };
         Returns: {
-          serial: string;
           issued_at: string;
+          serial: string;
         }[];
-      };
-      is_admin: {
-        Args: Record<PropertyKey, never>;
-        Returns: boolean;
       };
       recompute_course_progress: {
-        Args: { p_user_id: string; p_course_id: string };
+        Args: { p_course_id: string; p_user_id: string };
         Returns: undefined;
       };
       save_lesson_progress: {
         Args: {
-          p_user_id: string;
+          p_duration: number;
           p_lesson_id: string;
           p_position: number;
-          p_duration: number;
+          p_user_id: string;
         };
         Returns: {
+          completed: boolean;
           course_id: string;
           percent: number;
-          completed: boolean;
         }[];
       };
       views_timeseries: {
@@ -924,21 +900,28 @@ export type Database = {
   };
 };
 
-type DefaultSchema = Database[Extract<keyof Database, "public">];
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">;
+
+type DefaultSchema = DatabaseWithoutInternals[Extract<
+  keyof Database,
+  "public"
+>];
 
 export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof Database;
+    schema: keyof DatabaseWithoutInternals;
   }
-    ? keyof (Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-        Database[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
     : never = never,
-> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
-  ? (Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-      Database[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals;
+}
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
       Row: infer R;
     }
     ? R
@@ -956,14 +939,16 @@ export type Tables<
 export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof Database;
+    schema: keyof DatabaseWithoutInternals;
   }
-    ? keyof Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
-> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
-  ? Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals;
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Insert: infer I;
     }
     ? I
@@ -979,14 +964,16 @@ export type TablesInsert<
 export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof Database;
+    schema: keyof DatabaseWithoutInternals;
   }
-    ? keyof Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
-> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
-  ? Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals;
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Update: infer U;
     }
     ? U
@@ -1002,14 +989,16 @@ export type TablesUpdate<
 export type Enums<
   DefaultSchemaEnumNameOrOptions extends
     | keyof DefaultSchema["Enums"]
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   EnumName extends DefaultSchemaEnumNameOrOptions extends {
-    schema: keyof Database;
+    schema: keyof DatabaseWithoutInternals;
   }
-    ? keyof Database[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
     : never = never,
-> = DefaultSchemaEnumNameOrOptions extends { schema: keyof Database }
-  ? Database[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+> = DefaultSchemaEnumNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals;
+}
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
   : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
     ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
     : never;
@@ -1017,22 +1006,21 @@ export type Enums<
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
-    schema: keyof Database;
+    schema: keyof DatabaseWithoutInternals;
   }
-    ? keyof Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
     : never = never,
-> = PublicCompositeTypeNameOrOptions extends { schema: keyof Database }
-  ? Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+> = PublicCompositeTypeNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals;
+}
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
   : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
     ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
     : never;
 
 export const Constants = {
-  graphql_public: {
-    Enums: {},
-  },
   public: {
     Enums: {},
   },

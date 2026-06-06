@@ -3,10 +3,12 @@ import { createFileRoute, notFound } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { VideoEditor } from "@/components/admin/video-editor";
 import { monetizationEnabled } from "@/lib/entitlements";
+import { requireAdmin } from "@/lib/session";
 
 const loadVideo = createServerFn({ method: "GET" })
   .inputValidator((input: { id: string }) => input)
   .handler(async ({ data }) => {
+    await requireAdmin();
     const [video, categories] = await Promise.all([
       videoRepo.getVideo(data.id),
       categoryRepo.listCategories(),

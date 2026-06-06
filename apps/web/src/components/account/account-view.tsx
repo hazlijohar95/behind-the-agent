@@ -1,3 +1,5 @@
+import { CertificatesCard } from "./certificates-card";
+import { ContinueLearningCard } from "./continue-learning-card";
 import { ProfileCard } from "./profile-card";
 import { PurchasesCard } from "./purchases-card";
 import { SubscriptionCard } from "./subscription-card";
@@ -12,8 +14,16 @@ export function AccountView({ data }: { data: AccountData }) {
 
       <ProfileCard user={data.user} />
 
+      {data.continueLearning.length > 0 && (
+        <ContinueLearningCard items={data.continueLearning} />
+      )}
+
       {data.monetizationEnabled && (
         <SubscriptionCard billing={data.billing} hasPlans={data.hasPlans} />
+      )}
+
+      {data.certificates.length > 0 && (
+        <CertificatesCard certificates={data.certificates} />
       )}
 
       {data.purchases.length > 0 && (

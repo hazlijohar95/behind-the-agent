@@ -3,6 +3,10 @@ import { streamThumbnailUrl } from "@btc/ui";
 import { toast } from "@btc/ui/components/toaster";
 import { useRouter } from "@tanstack/react-router";
 import * as React from "react";
+import {
+  generateMetadataAction,
+  type VideoMetadataSuggestion,
+} from "@/lib/ai-metadata";
 import { deleteVideoAction, saveVideoAction } from "@/server/admin";
 
 type SaveIntent = "save" | "publish" | "unpublish" | "schedule";
@@ -13,6 +17,46 @@ const SAVE_LABEL: Record<SaveIntent, string> = {
   unpublish: "Unpublished",
   schedule: "Scheduled",
 };
+
+/** Format seconds as `m:ss`, or `h:mm:ss` once past an hour. */
+function formatTimecode(totalSeconds: number): string {
+  const s = Math.max(0, Math.floor(totalSeconds));
+  const hours = Math.floor(s / 3600);
+  const minutes = Math.floor((s % 3600) / 60);
+  const seconds = s % 60;
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return hours > 0
+    ? `${hours}:${pad(minutes)}:${pad(seconds)}`
+    : `${minutes}:${pad(seconds)}`;
+}
+
+/**
+ * Render AI-proposed chapters as markdown the editor already understands: each
+ * line links a `[m:ss](#t=seconds)` timecode (the RichEditor's own timestamp
+ * convention, which the player seeks to) to its chapter title. Returns an empty
+ * string when there are no chapters so the description isn't padded.
+ */
+function chaptersToMarkdown(
+  chapters: VideoMetadataSuggestion["chapters"],
+): string {
+  if (chapters.length === 0) return "";
+  const lines = chapters.map(
+    (c) =>
+      `- [${formatTimecode(c.startSeconds)}](#t=${c.startSeconds}) ${c.title}`,
+  );
+  return `## Chapters\n\n${lines.join("\n")}`;
+}
+
+/**
+ * Compose the editor description from a metadata suggestion: the prose summary,
+ * followed by a "Chapters" section when the model returned timing cues.
+ */
+function suggestionToDescription(suggestion: VideoMetadataSuggestion): string {
+  const chapters = chaptersToMarkdown(suggestion.chapters);
+  return chapters
+    ? `${suggestion.description}\n\n${chapters}`
+    : suggestion.description;
+}
 
 /**
  * Owns the video-editor form state and its save / thumbnail-upload / delete
@@ -37,6 +81,14 @@ export function useVideoEditor(video: Video) {
   const [scheduleAt, setScheduleAt] = React.useState("");
   const [busy, setBusy] = React.useState<string | null>(null);
   const fileRef = React.useRef<HTMLInputElement>(null);
+
+  // AI auto-metadata. `transcriptText` is the source the admin supplies (the
+  // stored transcript isn't carried on the client `Video`); `generating` gates
+  // the button; `descriptionKey` is bumped to remount the RichEditor when the
+  // description is replaced, since it only reads `value` as its initial content.
+  const [transcriptText, setTranscriptText] = React.useState("");
+  const [generating, setGenerating] = React.useState(false);
+  const [descriptionKey, setDescriptionKey] = React.useState(0);
 
   const tags = tagsText
     .split(",")
@@ -79,6 +131,36 @@ export function useVideoEditor(video: Video) {
       toast.error(err instanceof Error ? err.message : "Could not save");
     } finally {
       setBusy(null);
+    }
+  }
+
+  /**
+   * Generate title / description / tags / chapters from the supplied transcript
+   * and pre-fill the form. Non-destructive in spirit: the admin can still edit
+   * or save manually afterwards. Failures surface as a toast and leave the form
+   * untouched.
+   */
+  async function generateMetadata() {
+    const transcript = transcriptText.trim();
+    if (!transcript) {
+      toast.error("Paste a transcript first.");
+      return;
+    }
+    setGenerating(true);
+    try {
+      const res = await generateMetadataAction({ data: { transcript } });
+      if (!res.ok) throw new Error(res.error);
+      const { suggestion } = res;
+      if (suggestion.title) setTitle(suggestion.title);
+      setDescription(suggestionToDescription(suggestion));
+      // Remount the RichEditor so it picks up the new description content.
+      setDescriptionKey((k) => k + 1);
+      if (suggestion.tags.length) setTagsText(suggestion.tags.join(", "));
+      toast.success("Metadata generated — review before saving.");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Could not generate");
+    } finally {
+      setGenerating(false);
     }
   }
 
@@ -142,6 +224,11 @@ export function useVideoEditor(video: Video) {
     busy,
     fileRef,
     posterPreview,
+    transcriptText,
+    setTranscriptText,
+    generating,
+    descriptionKey,
+    generateMetadata,
     save,
     uploadThumbnail,
     remove,

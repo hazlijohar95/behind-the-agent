@@ -11,7 +11,8 @@ import {
   SelectValue,
 } from "@btc/ui/components/select";
 import { Spinner } from "@btc/ui/components/spinner";
-import { Trash2 } from "lucide-react";
+import { Textarea } from "@btc/ui/components/textarea";
+import { Sparkles, Trash2 } from "lucide-react";
 import { ThumbnailCard } from "./thumbnail-card";
 import { useVideoEditor } from "./use-video-editor";
 import { VideoStatusCard } from "./video-status-card";
@@ -39,9 +40,41 @@ export function VideoEditor({
           />
         </div>
 
+        <div className="space-y-2 rounded-xl border border-dashed border-border bg-muted/30 p-3">
+          <div className="flex items-center gap-2">
+            <Sparkles className="size-4 text-primary" />
+            <Label htmlFor="transcript" className="font-medium">
+              Generate with AI
+            </Label>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Paste the video transcript to draft a title, description, tags, and
+            chapters. Review everything before saving.
+          </p>
+          <Textarea
+            id="transcript"
+            rows={4}
+            value={editor.transcriptText}
+            onChange={(e) => editor.setTranscriptText(e.target.value)}
+            placeholder="Paste transcript text here…"
+            disabled={editor.generating}
+          />
+          <Button
+            type="button"
+            size="sm"
+            variant="secondary"
+            disabled={editor.generating || !editor.transcriptText.trim()}
+            onClick={editor.generateMetadata}
+          >
+            {editor.generating ? <Spinner /> : <Sparkles className="size-4" />}
+            Generate with AI
+          </Button>
+        </div>
+
         <div className="space-y-1.5">
           <Label>Description</Label>
           <RichEditor
+            key={editor.descriptionKey}
             value={editor.description}
             onChange={editor.setDescription}
           />

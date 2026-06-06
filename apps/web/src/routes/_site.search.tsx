@@ -1,14 +1,52 @@
+import { isDbConfigured, searchRepo } from "@btc/db";
+import type { MediaItem } from "@btc/ui";
 import { VideoGrid } from "@btc/ui/components/video-grid";
 import { createFileRoute } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
+import { z } from "zod";
 import { SearchBox } from "@/components/search-box";
-import { searchVideos } from "@/lib/catalog";
+import {
+  type TranscriptMatch,
+  TranscriptMatches,
+} from "@/components/transcript-matches";
+import { getCategoryMap, toMediaItem } from "@/lib/catalog";
+
+const searchInput = z.object({ q: z.string().max(200).default("") });
+
+type SearchResults = {
+  items: MediaItem[];
+  transcriptMatches: TranscriptMatch[];
+};
 
 const runSearch = createServerFn({ method: "GET" })
-  .inputValidator((input: { q: string }) => input)
-  .handler(async ({ data }) => {
-    const results = await searchVideos(data.q);
-    return { results };
+  .inputValidator((input: unknown) => searchInput.parse(input))
+  .handler(async ({ data }): Promise<SearchResults> => {
+    const q = data.q.trim();
+    if (!q || !isDbConfigured()) {
+      return { items: [], transcriptMatches: [] };
+    }
+
+    const results = await searchRepo.searchVideos(q);
+    const categories = await getCategoryMap();
+
+    const items: MediaItem[] = [];
+    const transcriptMatches: TranscriptMatch[] = [];
+    for (const v of results) {
+      const item = toMediaItem(
+        v,
+        v.categoryId ? categories[v.categoryId] : null,
+      );
+      items.push(item);
+      // Only results whose match included spoken content get an excerpt.
+      if (v.transcriptSnippet) {
+        transcriptMatches.push({
+          item,
+          parts: searchRepo.splitSnippet(v.transcriptSnippet, q),
+        });
+      }
+    }
+
+    return { items, transcriptMatches };
   });
 
 export const Route = createFileRoute("/_site/search")({
@@ -26,7 +64,7 @@ export const Route = createFileRoute("/_site/search")({
 
 function SearchPage() {
   const { q } = Route.useSearch();
-  const { results } = Route.useLoaderData();
+  const { items, transcriptMatches } = Route.useLoaderData();
   const query = q?.trim() ?? "";
 
   return (
@@ -42,14 +80,18 @@ function SearchPage() {
 
       {!query ? (
         <p className="text-muted-foreground">
-          Type a query in the search box to find videos.
+          Type a query in the search box to find videos. We search titles,
+          descriptions, and what&apos;s spoken in each video.
         </p>
-      ) : results.length === 0 ? (
+      ) : items.length === 0 ? (
         <div className="glass rounded-2xl py-16 text-center text-muted-foreground">
           No videos match “{query}”.
         </div>
       ) : (
-        <VideoGrid items={results} priorityCount={4} />
+        <div className="space-y-10">
+          <VideoGrid items={items} priorityCount={4} />
+          <TranscriptMatches matches={transcriptMatches} />
+        </div>
       )}
     </div>
   );

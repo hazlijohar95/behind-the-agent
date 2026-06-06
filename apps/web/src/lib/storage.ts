@@ -1,9 +1,18 @@
-import { getDb } from "@btc/db";
+import { env } from "cloudflare:workers";
+import { appUrl } from "./env";
 
 export type Bucket = "thumbnails" | "branding";
 
+// UUID-named objects are immutable, so cache them hard.
+const IMMUTABLE = "public, max-age=31536000, immutable";
+
 /**
- * Upload a file to a public Supabase Storage bucket and return its public URL.
+ * Upload a public file to the Cloudflare R2 bucket (Worker binding `MEDIA`) and
+ * return its absolute URL, served by the app's own `/media/*` route.
+ *
+ * Native to the Worker — no Supabase Storage and no external bucket domain. The
+ * `bucket` argument becomes a key prefix within the single R2 bucket
+ * (`thumbnails/…`, `branding/…`).
  */
 export async function uploadPublicFile(
   bucket: Bucket,
@@ -11,12 +20,9 @@ export async function uploadPublicFile(
   file: File | Blob,
   contentType: string,
 ): Promise<string> {
-  const db = getDb();
-  const { error } = await db.storage.from(bucket).upload(path, file, {
-    contentType,
-    upsert: true,
+  const key = `${bucket}/${path}`;
+  await env.MEDIA.put(key, await file.arrayBuffer(), {
+    httpMetadata: { contentType, cacheControl: IMMUTABLE },
   });
-  if (error) throw new Error(error.message);
-  const { data } = db.storage.from(bucket).getPublicUrl(path);
-  return data.publicUrl;
+  return `${appUrl()}/media/${key}`;
 }

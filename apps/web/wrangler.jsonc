@@ -9,6 +9,10 @@
   // (@tanstack/react-start/server-entry) AND adds a `scheduled` handler for the
   // Cron Trigger below (scheduled publish).
   "main": "./src/worker.ts",
+  // R2 bucket for public media (custom video posters, branding/logo). Served by
+  // the app's own /media/* route — native to the Worker, no Supabase Storage and
+  // no external bucket domain. Local dev uses a miniflare-backed bucket.
+  "r2_buckets": [{ "binding": "MEDIA", "bucket_name": "btd-media" }],
   "observability": { "enabled": true },
   "triggers": {
     // Cron Trigger → the Worker `scheduled()` handler (scheduled publish).

@@ -9,6 +9,7 @@ export function DocPage({ slug }: { slug: string }) {
   return (
     <article className="mx-auto max-w-3xl px-4 py-12 sm:px-6">
       <Prose className="text-base">
+        {/* biome-ignore lint/security/noDangerouslySetInnerHtml: sanitized by renderMarkdown (DOMPurify) */}
         <div dangerouslySetInnerHTML={{ __html: renderMarkdown(source) }} />
       </Prose>
     </article>

@@ -1,5 +1,4 @@
 import { Clock } from "lucide-react";
-import * as React from "react";
 import { dispatchSeek } from "#components/stream-player";
 import { cn, formatDuration } from "#lib/utils";
 
@@ -31,8 +30,8 @@ export function SeekButton({
 export function parseTimestampHref(href?: string): number | null {
   if (!href) return null;
   const m = href.match(/^#t=(.+)$/);
-  if (!m) return null;
-  const raw = m[1]!;
+  const raw = m?.[1];
+  if (!raw) return null;
   if (/^\d+(\.\d+)?$/.test(raw)) return Number(raw);
   const parts = raw.split(":").map(Number);
   if (parts.some((n) => Number.isNaN(n))) return null;

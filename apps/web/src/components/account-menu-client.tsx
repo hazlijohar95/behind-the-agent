@@ -53,7 +53,10 @@ export function AccountMenuClient({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <button className="rounded-full outline-none ring-ring/40 focus-visible:ring-[3px]">
+        <button
+          type="button"
+          className="rounded-full outline-none ring-ring/40 focus-visible:ring-[3px]"
+        >
           <Avatar className="size-9 border border-glass-border">
             {image ? <AvatarImage src={image} alt={name} /> : null}
             <AvatarFallback className="bg-primary/15 text-primary">

@@ -48,7 +48,10 @@ export function DeployBanner() {
       aria-label="Deploy your own copy — view the source and setup guide on GitHub"
       className="group relative z-40 block w-full overflow-hidden border-b border-btc-border bg-btc-surface py-2.5 text-btc-muted transition-colors hover:text-btc-text"
     >
-      <div className="marquee-track" aria-hidden>
+      <span className="sr-only">
+        Deploy your own copy — view the source and setup guide on GitHub
+      </span>
+      <div className="marquee-track" aria-hidden="true">
         <MarqueeHalf />
         <MarqueeHalf />
       </div>

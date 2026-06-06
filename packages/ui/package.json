@@ -18,6 +18,7 @@
     "./tailwind": "./src/styles/globals.css"
   },
   "scripts": {
+    "lint": "biome check .",
     "typecheck": "tsc --noEmit",
     "clean": "rm -rf .turbo node_modules"
   },
@@ -43,7 +44,6 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^1.17.0",
-    "motion": "^12.40.0",
     "next-themes": "^0.4.6",
     "radix-ui": "^1.4.3",
     "sonner": "^2.0.7",

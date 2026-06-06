@@ -41,7 +41,7 @@ const METAL_STOPS: Array<[number, string, number]> = [
 function MetallicSurface() {
   return (
     <svg
-      aria-hidden
+      aria-hidden="true"
       preserveAspectRatio="none"
       viewBox="0 0 91 32"
       className="absolute inset-0 size-full"

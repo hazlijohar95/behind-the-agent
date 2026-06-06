@@ -3,8 +3,10 @@ import { createFileRoute } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { PlanManager } from "@/components/admin/plan-manager";
 import { monetizationEnabled } from "@/lib/entitlements";
+import { requireAdmin } from "@/lib/session";
 
 const loadPlans = createServerFn({ method: "GET" }).handler(async () => {
+  await requireAdmin();
   const plans = await planRepo.listPlans();
   return { plans, monetizationEnabled: monetizationEnabled() };
 });

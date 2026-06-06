@@ -1,4 +1,4 @@
-import { planRepo, purchaseRepo, videoRepo } from "@btc/db";
+import { isDbConfigured, planRepo, purchaseRepo, videoRepo } from "@btc/db";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import {
@@ -8,6 +8,10 @@ import {
 import { getBilling } from "@/lib/billing";
 import { monetizationEnabled } from "@/lib/entitlements";
 import { getCurrentUser } from "@/lib/session";
+import {
+  enrichContinueLearning,
+  loadEarnedCertificates,
+} from "@/server/progress";
 
 const requireAccountUser = createServerFn({ method: "GET" }).handler(
   async () => {
@@ -25,6 +29,18 @@ const loadAccount = createServerFn({ method: "GET" }).handler(async () => {
   let billing: AccountData["billing"] = null;
   let purchases: AccountData["purchases"] = [];
   let hasPlans = false;
+
+  // Progress + certificates are independent of monetization (they work even
+  // when payments are off), but still require the DB. Fetched in parallel and
+  // guarded so an unconfigured DB just yields empty rails rather than a 500.
+  let continueLearning: AccountData["continueLearning"] = [];
+  let certificates: AccountData["certificates"] = [];
+  if (isDbConfigured()) {
+    [continueLearning, certificates] = await Promise.all([
+      enrichContinueLearning(user.id),
+      loadEarnedCertificates(user.id),
+    ]);
+  }
 
   if (monetizationEnabled()) {
     const [b, rawPurchases, plans] = await Promise.all([
@@ -67,6 +83,8 @@ const loadAccount = createServerFn({ method: "GET" }).handler(async () => {
     billing,
     hasPlans,
     purchases,
+    continueLearning,
+    certificates,
   };
 
   return data;

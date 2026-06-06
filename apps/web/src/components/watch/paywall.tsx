@@ -6,10 +6,22 @@ import { PaywallActions } from "./paywall-actions";
 export function Paywall({
   item,
   access,
+  courseId,
 }: {
   item: MediaItem;
   access: WatchAccess;
+  /**
+   * Set when the paywall guards a COURSE lesson: a `needs-purchase` here means
+   * "buy the course", so checkout must target the course (not the backing
+   * video, which is created `access:"free"` and has no product of its own).
+   * Omitted on the standalone video page, where `needs-purchase` buys the video.
+   */
+  courseId?: string;
 }) {
+  // SECURITY: `item.streamUid` is null for gated content here (the route strips
+  // it for un-entitled viewers) so no bare Cloudflare uid is shipped to the
+  // client. `posterFor` then falls back to `customPosterUrl` or renders no
+  // poster at all — never a uid-bearing thumbnail URL an attacker could replay.
   const poster = posterFor(item, 1280);
   const message =
     access.reason === "needs-purchase"
@@ -35,6 +47,7 @@ export function Paywall({
           <h2 className="text-xl font-bold text-white">{message}</h2>
           <PaywallActions
             videoId={item.id}
+            courseId={courseId}
             reason={
               access.reason as
                 | "needs-subscription"

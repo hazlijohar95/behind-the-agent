@@ -231,7 +231,7 @@ export function AuthForm({
 
 function GoogleIcon() {
   return (
-    <svg viewBox="0 0 24 24" className="size-4">
+    <svg viewBox="0 0 24 24" className="size-4" aria-hidden="true">
       <path
         fill="#4285F4"
         d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.27-4.74 3.27-8.1Z"
@@ -258,7 +258,7 @@ function XIcon() {
       viewBox="0 0 24 24"
       className="size-3.5"
       fill="currentColor"
-      aria-hidden
+      aria-hidden="true"
     >
       <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231 5.45-6.231Zm-1.161 17.52h1.833L7.084 4.126H5.117l11.966 15.644Z" />
     </svg>

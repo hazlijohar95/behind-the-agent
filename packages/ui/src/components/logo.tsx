@@ -1,4 +1,3 @@
-import * as React from "react";
 import { cn } from "#lib/utils";
 
 export function Logo({
@@ -22,7 +21,7 @@ export function Logo({
             viewBox="0 0 24 24"
             className="size-4"
             fill="currentColor"
-            aria-hidden
+            aria-hidden="true"
           >
             <path d="M9.5 7.5v9l7-4.5-7-4.5Z" />
           </svg>

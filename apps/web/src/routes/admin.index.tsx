@@ -11,6 +11,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { Flag } from "lucide-react";
 import { ViewsChart } from "@/components/admin/views-chart";
+import { requireAdmin } from "@/lib/session";
 import { listRecentMembers } from "@/lib/users";
 
 const STATUS_LABEL: Record<string, string> = {
@@ -20,6 +21,7 @@ const STATUS_LABEL: Record<string, string> = {
 };
 
 const loadDashboard = createServerFn({ method: "GET" }).handler(async () => {
+  await requireAdmin();
   const [stats, series, top, recentComments, recentVideos, recentMembers] =
     await Promise.all([
       statsRepo.getDashboardStats(),

@@ -2,8 +2,10 @@ import { settingsRepo } from "@btc/db";
 import { createFileRoute } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { SettingsForm } from "@/components/admin/settings-form";
+import { requireAdmin } from "@/lib/session";
 
 const loadSettings = createServerFn({ method: "GET" }).handler(async () => {
+  await requireAdmin();
   const settings = await settingsRepo.getSettings();
   return { settings };
 });

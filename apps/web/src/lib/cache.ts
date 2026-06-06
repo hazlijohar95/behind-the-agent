@@ -6,8 +6,8 @@ import { setResponseHeader } from "@tanstack/react-start/server";
  * Use ONLY on pages whose output does not vary by user (the public catalog:
  * home, category, marketing pages). `s-maxage` is honored by Cloudflare's edge
  * cache but ignored by browsers, and `stale-while-revalidate` serves a cached
- * copy instantly while refreshing in the background. Replaces the old Next.js
- * tag-based data cache with a TTL + SWR model (the standard Workers pattern).
+ * copy instantly while refreshing in the background. Uses a TTL + SWR model
+ * (the standard Workers pattern).
  *
  * Do NOT call this on authenticated or per-user pages (watch/account/admin).
  */

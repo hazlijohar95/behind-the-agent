@@ -47,3 +47,25 @@ declare namespace NodeJS {
     TWITTER_CLIENT_SECRET?: string;
   }
 }
+
+// Cloudflare Worker bindings, accessed via `import { env } from "cloudflare:workers"`.
+// `MEDIA` is the R2 bucket for public media (see lib/storage.ts + routes/media.$.ts).
+declare module "cloudflare:workers" {
+  interface R2Object {
+    readonly body: ReadableStream;
+    readonly httpEtag: string;
+    writeHttpMetadata(headers: Headers): void;
+  }
+  interface R2Bucket {
+    put(
+      key: string,
+      value: ArrayBuffer | ReadableStream | string | Blob,
+      options?: {
+        httpMetadata?: { contentType?: string; cacheControl?: string };
+      },
+    ): Promise<unknown>;
+    get(key: string): Promise<R2Object | null>;
+    delete(key: string): Promise<void>;
+  }
+  export const env: { MEDIA: R2Bucket };
+}

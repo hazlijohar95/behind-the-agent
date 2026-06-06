@@ -160,6 +160,47 @@ export async function markVideoReady(
   return row ? rowToVideo(row) : null;
 }
 
+/**
+ * Persist the plain-text transcript for a video (populated out-of-band by the
+ * transcription pipeline; see `@/lib/transcript`). The stored text feeds the
+ * `videos.search` tsvector, so full-text search covers spoken content. Returns
+ * the updated video, or null if the row no longer exists.
+ */
+export async function setTranscript(
+  id: string,
+  transcript: string,
+): Promise<Video | null> {
+  const { data } = await getDb()
+    .from("videos")
+    .update({ transcript })
+    .eq("id", id)
+    .select("*")
+    .single();
+  return data ? rowToVideo(data) : null;
+}
+
+/**
+ * Persist a video's playback policy. Paired with the Stream-side
+ * `setRequireSignedURLs` call: when a video backs a *gated* course's lesson it
+ * MUST be `"signed"` so the player mints a token and the bare uid can't bypass
+ * the paywall (see the lesson-attach / course-publish enforcement in
+ * `server/courses.ts`). A focused write — it skips the slug-recompute logic in
+ * `updateVideo` so flipping the policy can never churn the slug. Returns the
+ * updated video, or null if the row no longer exists.
+ */
+export async function setPlaybackPolicy(
+  id: string,
+  playbackPolicy: Video["playbackPolicy"],
+): Promise<Video | null> {
+  const { data } = await getDb()
+    .from("videos")
+    .update({ playback_policy: playbackPolicy })
+    .eq("id", id)
+    .select("*")
+    .single();
+  return data ? rowToVideo(data) : null;
+}
+
 export async function findVideoByStreamUid(uid: string): Promise<Video | null> {
   const { data } = await getDb()
     .from("videos")
@@ -231,6 +272,36 @@ export async function getDueScheduled(
     .order("publish_at", { ascending: true })
     .limit(limit);
   return (data ?? []).map((r) => r.id);
+}
+
+/**
+ * Ready videos that still have no stored transcript, as `{ id, streamUid }`
+ * pairs (oldest first, capped). Stream sends no "captions ready" webhook, so
+ * transcript ingest is a poll: the webhook makes one inline best-effort attempt
+ * when a video goes ready, and this query feeds the cron drain that retries the
+ * stragglers (see `@/lib/transcript` `ingestTranscript`, which is idempotent).
+ *
+ * Only `processing_status = 'ready'` rows with a `stream_uid` are candidates —
+ * there's nothing to fetch captions for otherwise. `transcript` is selected/
+ * filtered here (it's intentionally absent from the mapped `Video` type, so it
+ * can't be derived from the other list helpers).
+ */
+export async function getReadyWithoutTranscript(
+  limit = 25,
+): Promise<{ id: string; streamUid: string }[]> {
+  const { data } = await getDb()
+    .from("videos")
+    .select("id, stream_uid")
+    .eq("processing_status", "ready")
+    .not("stream_uid", "is", null)
+    .is("transcript", null)
+    .order("created_at", { ascending: true })
+    .limit(limit);
+  return (data ?? [])
+    .filter(
+      (r): r is { id: string; stream_uid: string } => r.stream_uid != null,
+    )
+    .map((r) => ({ id: r.id, streamUid: r.stream_uid }));
 }
 
 export async function deleteVideo(id: string): Promise<Video | null> {

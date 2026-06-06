@@ -2,8 +2,10 @@ import { createFileRoute } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { UploadVideo } from "@/components/admin/upload-video";
 import { monetizationEnabled } from "@/lib/entitlements";
+import { requireAdmin } from "@/lib/session";
 
 const loadNewVideo = createServerFn({ method: "GET" }).handler(async () => {
+  await requireAdmin();
   return { monetizationEnabled: monetizationEnabled() };
 });
 

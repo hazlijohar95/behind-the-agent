@@ -1,4 +1,11 @@
-import { planRepo, purchaseRepo, webhookRepo } from "@btc/db";
+import {
+  courseRepo,
+  planRepo,
+  profileRepo,
+  purchaseRepo,
+  videoRepo,
+  webhookRepo,
+} from "@btc/db";
 import {
   validateEvent,
   WebhookVerificationError,
@@ -6,20 +13,39 @@ import {
 import { createFileRoute } from "@tanstack/react-router";
 import { json } from "@/lib/api";
 import { getUserIdByCustomer, setBilling } from "@/lib/billing";
+import {
+  failedPaymentEmail,
+  isEmailConfigured,
+  purchaseReceiptEmail,
+  sendEmail,
+  subscriptionRenewalEmail,
+} from "@/lib/email";
+import { appUrl } from "@/lib/env";
 
 type PolarEvent = ReturnType<typeof validateEvent>;
+type OrderData = Extract<PolarEvent, { type: "order.paid" }>["data"];
 type SubscriptionData = Extract<
   PolarEvent,
   { type: "subscription.updated" }
 >["data"];
 
-async function syncSubscription(sub: SubscriptionData) {
+/** What {@link syncSubscription} resolved, so the caller can decide on email. */
+type SubscriptionSync = {
+  userId: string;
+  planName: string;
+  status: string;
+  periodEnd: number | null;
+};
+
+async function syncSubscription(
+  sub: SubscriptionData,
+): Promise<SubscriptionSync | null> {
   const customerId = sub.customerId;
   const userId =
     sub.customer?.externalId ??
     (sub.metadata?.userId != null ? String(sub.metadata.userId) : null) ??
     (await getUserIdByCustomer(customerId));
-  if (!userId) return;
+  if (!userId) return null;
 
   const plan = sub.productId
     ? await planRepo.findPlanByProductId(sub.productId)
@@ -38,6 +64,69 @@ async function syncSubscription(sub: SubscriptionData) {
     currentPeriodEnd: periodEnd,
     updatedAt: Date.now(),
   });
+
+  return {
+    userId,
+    planName: plan?.name ?? "subscription",
+    status: sub.status,
+    periodEnd,
+  };
+}
+
+/** Look up a member's email from our own profiles store (repository-backed). */
+async function emailFor(userId: string): Promise<string | null> {
+  const profile = await profileRepo.getProfile(userId);
+  return profile?.email ? profile.email : null;
+}
+
+/**
+ * Email a purchase receipt for a completed video order. Best-effort: a missing
+ * profile/video/email simply skips the send, and any failure is swallowed by
+ * {@link sendEmail} so it can never fail the webhook (which would make Polar
+ * retry an event we've already recorded as processed).
+ */
+async function sendPurchaseReceipt(
+  order: OrderData,
+  userId: string,
+  videoId: string,
+): Promise<void> {
+  if (!isEmailConfigured()) return;
+  const [to, video] = await Promise.all([
+    emailFor(userId),
+    videoRepo.getVideo(videoId),
+  ]);
+  if (!to || !video) return;
+  const { subject, html } = purchaseReceiptEmail({
+    videoTitle: video.title,
+    videoUrl: `${appUrl()}/v/${video.slug}`,
+    amountMinor: order.totalAmount ?? 0,
+    currency: order.currency ?? "usd",
+  });
+  await sendEmail({ to, subject, html });
+}
+
+/**
+ * Send the right subscription email for a sync result: a dunning notice when the
+ * subscription is past due / unpaid, otherwise an "active" confirmation when it
+ * is in good standing. No-ops when email is unconfigured.
+ */
+async function sendSubscriptionEmail(sync: SubscriptionSync): Promise<void> {
+  if (!isEmailConfigured()) return;
+  const to = await emailFor(sync.userId);
+  if (!to) return;
+
+  const pastDue = sync.status === "past_due" || sync.status === "unpaid";
+  const { subject, html } = pastDue
+    ? failedPaymentEmail({ planName: sync.planName })
+    : sync.status === "active" || sync.status === "trialing"
+      ? subscriptionRenewalEmail({
+          planName: sync.planName,
+          periodEnd: sync.periodEnd,
+        })
+      : { subject: "", html: "" };
+
+  if (!subject) return; // canceled/revoked etc. — no email for this transition.
+  await sendEmail({ to, subject, html });
 }
 
 export const Route = createFileRoute("/api/polar/webhook")({
@@ -75,9 +164,31 @@ export const Route = createFileRoute("/api/polar/webhook")({
               const order = event.data;
               const meta = order.metadata ?? {};
               if (meta.kind === "purchase" && meta.userId && meta.videoId) {
+                const userId = String(meta.userId);
+                const videoId = String(meta.videoId);
                 await purchaseRepo.recordPurchase({
+                  userId,
+                  videoId,
+                  polarOrderId: order.id,
+                  amount: order.totalAmount ?? 0,
+                  currency: order.currency ?? "usd",
+                });
+                // Receipt is best-effort: never let an email problem fail the
+                // webhook, since the delivery is already marked processed and
+                // Polar would not retry it.
+                await sendPurchaseReceipt(order, userId, videoId).catch((err) =>
+                  console.error("[polar webhook] receipt email failed:", err),
+                );
+              } else if (
+                meta.kind === "course-purchase" &&
+                meta.userId &&
+                meta.courseId
+              ) {
+                // Course one-time purchase (started by /api/course-checkout).
+                // Records the course entitlement read by resolveCourseAccess.
+                await courseRepo.recordCoursePurchase({
                   userId: String(meta.userId),
-                  videoId: String(meta.videoId),
+                  courseId: String(meta.courseId),
                   polarOrderId: order.id,
                   amount: order.totalAmount ?? 0,
                   currency: order.currency ?? "usd",
@@ -91,7 +202,15 @@ export const Route = createFileRoute("/api/polar/webhook")({
             case "subscription.active":
             case "subscription.canceled":
             case "subscription.revoked": {
-              await syncSubscription(event.data);
+              const sync = await syncSubscription(event.data);
+              if (sync) {
+                await sendSubscriptionEmail(sync).catch((err) =>
+                  console.error(
+                    "[polar webhook] subscription email failed:",
+                    err,
+                  ),
+                );
+              }
               break;
             }
 

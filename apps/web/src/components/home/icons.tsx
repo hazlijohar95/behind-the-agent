@@ -10,7 +10,12 @@ type IconProps = SVGProps<SVGSVGElement>;
 
 function Glyph({ children, ...props }: IconProps & { children: ReactNode }) {
   return (
-    <svg viewBox="0 -960 960 960" fill="currentColor" aria-hidden {...props}>
+    <svg
+      viewBox="0 -960 960 960"
+      fill="currentColor"
+      aria-hidden="true"
+      {...props}
+    >
       {children}
     </svg>
   );

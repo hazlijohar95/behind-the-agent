@@ -56,6 +56,16 @@ export function streamAnimatedUrl(
   return `${STREAM_HOST}/${uid}/thumbnails/thumbnail.gif${qs ? `?${qs}` : ""}`;
 }
 
+/**
+ * Best poster URL for a media item: a custom poster if set, else a Cloudflare
+ * Stream still from the bare uid, else null.
+ *
+ * SECURITY: a bare-uid thumbnail URL exposes the uid, and an unsigned uid plays
+ * the full video at Cloudflare for a public-policy video — so for GATED content
+ * the caller MUST pass `streamUid: null` (relying on `customPosterUrl` only).
+ * This helper then never builds a uid-bearing URL. The watch routes do exactly
+ * that for un-entitled viewers; see `Paywall`.
+ */
 export function posterFor(item: MediaItem, width = 640): string | null {
   if (item.customPosterUrl) return item.customPosterUrl;
   if (!item.streamUid) return null;

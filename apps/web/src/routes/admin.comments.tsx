@@ -5,8 +5,10 @@ import {
   CommentModeration,
   type ModComment,
 } from "@/components/admin/comment-moderation";
+import { requireAdmin } from "@/lib/session";
 
 const loadComments = createServerFn({ method: "GET" }).handler(async () => {
+  await requireAdmin();
   const flagged = await commentRepo.listFlaggedComments(0, 100);
   const comments: ModComment[] = flagged.map((c) => ({
     id: c.id,

@@ -13,9 +13,11 @@ import { Link, useLocation } from "@tanstack/react-router";
 import {
   CreditCard,
   FolderTree,
+  GraduationCap,
   Home,
   LayoutDashboard,
   MessageSquare,
+  Rocket,
   Settings,
   Upload,
   Users,
@@ -34,6 +36,7 @@ const NAV: NavItem[] = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
   { href: "/admin/videos", label: "Videos", icon: Video },
   { href: "/admin/videos/new", label: "Upload", icon: Upload },
+  { href: "/admin/courses", label: "Courses", icon: GraduationCap },
   { href: "/admin/categories", label: "Categories", icon: FolderTree },
   { href: "/admin/comments", label: "Comments", icon: MessageSquare },
   { href: "/admin/users", label: "Users", icon: Users },
@@ -41,6 +44,7 @@ const NAV: NavItem[] = [
 
 const SETTINGS_NAV: NavItem[] = [
   { href: "/admin/plans", label: "Monetization", icon: CreditCard },
+  { href: "/admin/setup", label: "Setup", icon: Rocket },
   { href: "/admin/settings", label: "Settings", icon: Settings },
 ];
 

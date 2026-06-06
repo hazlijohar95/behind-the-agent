@@ -5,8 +5,10 @@ import {
   CategoryManager,
   type CategoryRow,
 } from "@/components/admin/category-manager";
+import { requireAdmin } from "@/lib/session";
 
 const loadCategories = createServerFn({ method: "GET" }).handler(async () => {
+  await requireAdmin();
   const categories = await categoryRepo.listCategories();
   const rows: CategoryRow[] = await Promise.all(
     categories.map(async (c) => ({

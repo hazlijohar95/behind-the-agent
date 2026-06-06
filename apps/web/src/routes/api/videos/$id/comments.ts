@@ -28,7 +28,7 @@ export const Route = createFileRoute("/api/videos/$id/comments")({
             return json({ error: "Comment is too long" }, 400);
 
           const video = await videoRepo.getVideo(id);
-          if (!video || video.publishStatus !== "published") {
+          if (video?.publishStatus !== "published") {
             return json({ error: "Video not found" }, 404);
           }
 

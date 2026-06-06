@@ -7,6 +7,10 @@
  *   deleteVideo        — remove a video from Stream
  *   signToken          — RS256 JWT for signed (gated) playback
  *   verifyWebhook      — validate the Stream webhook signature
+ *
+ * The AI ("generated") caption helpers (generateCaptions / getCaptionStatus /
+ * fetchCaptionVtt) live in `./client` and are re-exported below; VTT → plain
+ * transcript parsing is the consumer's job (see `@/lib/transcript`).
  */
 
 import {
@@ -14,6 +18,17 @@ import {
   base64UrlFromObject,
   signingConfig,
   streamFetch,
+} from "./client";
+
+/* ───────────────────────── Generated captions (re-exported) ───────────────────────── */
+
+export {
+  type CaptionStatus,
+  type CaptionTrack,
+  DEFAULT_CAPTION_LANGUAGE,
+  fetchCaptionVtt,
+  generateCaptions,
+  getCaptionStatus,
 } from "./client";
 
 /* ───────────────────────── Uploads ───────────────────────── */
@@ -79,6 +94,36 @@ export async function deleteVideo(uid: string): Promise<void> {
     await streamFetch(`/${uid}`, { method: "DELETE" });
   } catch {
     // Ignore — the video may already be gone.
+  }
+}
+
+/**
+ * Flip a video's `requireSignedURLs` flag on Cloudflare Stream.
+ *
+ * This is the Stream half of the paywall enforcement (the DB half is
+ * `playbackPolicy`). When `true`, Cloudflare refuses to serve the manifest or
+ * thumbnails for the bare `uid` — every request must carry a valid signed
+ * token. Setting it is how we make a video that backs a *gated* course's lesson
+ * unplayable by anyone who scrapes the uid (the real fix for the bypass).
+ *
+ * Throws on a non-OK response so the caller can BLOCK the unsafe state (e.g.
+ * refuse to publish a gated course) rather than silently persist a public
+ * policy in the DB while Stream still serves the raw video. Uses the standard
+ * Stream "edit video details" endpoint (`POST /{uid}` with a JSON body).
+ */
+export async function setRequireSignedURLs(
+  uid: string,
+  requireSignedURLs: boolean,
+): Promise<void> {
+  const res = await streamFetch(`/${uid}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ requireSignedURLs }),
+  });
+  if (!res.ok) {
+    throw new Error(
+      `Stream requireSignedURLs update failed for ${uid}: ${res.status} ${await res.text()}`,
+    );
   }
 }
 

@@ -13,6 +13,7 @@ import {
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { Plus } from "lucide-react";
+import { requireAdmin } from "@/lib/session";
 
 const STATUS_VARIANT: Record<
   PublishStatus,
@@ -36,6 +37,7 @@ const loadAdminVideos = createServerFn({ method: "GET" })
     q: typeof input.q === "string" ? input.q : undefined,
   }))
   .handler(async ({ data }) => {
+    await requireAdmin();
     const page = await videoRepo.listAdminVideos({
       status: data.status,
       query: data.q,

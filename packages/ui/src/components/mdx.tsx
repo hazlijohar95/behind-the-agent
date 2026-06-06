@@ -1,4 +1,4 @@
-import * as React from "react";
+import type * as React from "react";
 import { parseTimestampHref, SeekButton } from "#components/seek-button";
 import { cn } from "#lib/utils";
 

@@ -9,6 +9,7 @@
     "./database": "./src/database.types.ts"
   },
   "scripts": {
+    "lint": "biome check .",
     "typecheck": "tsc --noEmit",
     "clean": "rm -rf .turbo node_modules"
   },

@@ -4,11 +4,11 @@ import {
   UserManagement,
   type UserRow,
 } from "@/components/admin/user-management";
-import { getCurrentUser } from "@/lib/session";
+import { requireAdmin } from "@/lib/session";
 import { listUsers } from "@/lib/users";
 
 const loadUsers = createServerFn({ method: "GET" }).handler(async () => {
-  const me = await getCurrentUser();
+  const me = await requireAdmin();
 
   let users: UserRow[] = [];
   try {
